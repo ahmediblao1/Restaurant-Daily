@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Daily Accounting System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -78,12 +79,23 @@
         .summary {
             background-color: #2ecc71;
             color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
         }
         .summary h3 {
             margin-top: 0;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .summary p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .summary .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
         }
         .btn {
             background-color: #3498db;
@@ -169,30 +181,34 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Restaurant Daily Accounting System</h1>
+        <h1 data-translate="title">📊 Solo Restaurant Daily Accounting System</h1>
         
         <div class="date-selector">
-            <label for="report-date">Report Date: </label>
+            <label for="report-date" data-translate="reportDate">Report Date: </label>
             <input type="date" id="report-date" value="">
+            <select id="language-selector" onchange="changeLanguage()" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px; margin-left: 10px;">
+                <option value="en">English</option>
+                <option value="ar">العربية</option>
+            </select>
         </div>
 
         <!-- Sales Section -->
         <div class="section">
-            <h2>💰 Daily Sales Report</h2>
+            <h2 data-translate="dailySales">💰 Daily Sales Report</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Platform</th>
-                        <th>Gross Sales (TRY)</th>
-                        <th>Commission Rate (%)</th>
-                        <th>Commission Amount (TRY)</th>
-                        <th>Discount/Returns (TRY)</th>
-                        <th>Net Sales (TRY)</th>
+                        <th data-translate="platform">Platform</th>
+                        <th data-translate="grossSales">Gross Sales (TRY)</th>
+                        <th data-translate="commissionRate">Commission Rate (%)</th>
+                        <th data-translate="commissionAmount">Commission Amount (TRY)</th>
+                        <th data-translate="discountReturns">Discount/Returns (TRY)</th>
+                        <th data-translate="netSales">Net Sales (TRY)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr class="platform-row">
-                        <td><strong>Trendyol</strong></td>
+                        <td><strong data-translate="trendyol">Trendyol</strong></td>
                         <td><input type="number" class="input-field" id="trendyol-gross" placeholder="16,575" oninput="calculateSales()"></td>
                         <td><span class="commission-rate">36.6%</span></td>
                         <td><span id="trendyol-commission">0.00</span></td>
@@ -200,7 +216,7 @@
                         <td><span id="trendyol-net" class="net-amount">0.00</span></td>
                     </tr>
                     <tr class="platform-row">
-                        <td><strong>Yemeksepeti</strong></td>
+                        <td><strong data-translate="yemeksepeti">Yemeksepeti</strong></td>
                         <td><input type="number" class="input-field" id="yemeksepeti-gross" placeholder="3,285" oninput="calculateSales()"></td>
                         <td><span class="commission-rate">38.4%</span></td>
                         <td><span id="yemeksepeti-commission">0.00</span></td>
@@ -208,15 +224,23 @@
                         <td><span id="yemeksepeti-net" class="net-amount">0.00</span></td>
                     </tr>
                     <tr class="platform-row">
-                        <td><strong>In-Store Sales</strong></td>
-                        <td><input type="number" class="input-field" id="store-gross" placeholder="6,675" oninput="calculateSales()"></td>
+                        <td><strong data-translate="inStoreSalesCash">In-Store (Cash)</strong></td>
+                        <td><input type="number" class="input-field" id="store-cash-gross" placeholder="4,000" oninput="calculateSales()"></td>
                         <td><span class="commission-rate">0%</span></td>
-                        <td><span id="store-commission">0.00</span></td>
-                        <td><input type="number" class="input-field" id="store-discount" placeholder="47" oninput="calculateSales()"></td>
-                        <td><span id="store-net" class="net-amount">0.00</span></td>
+                        <td><span id="store-cash-commission">0.00</span></td>
+                        <td><input type="number" class="input-field" id="store-cash-discount" placeholder="20" oninput="calculateSales()"></td>
+                        <td><span id="store-cash-net" class="net-amount">0.00</span></td>
+                    </tr>
+                    <tr class="platform-row">
+                        <td><strong data-translate="inStoreSalesCard">In-Store (Credit Card)</strong></td>
+                        <td><input type="number" class="input-field" id="store-card-gross" placeholder="2,675" oninput="calculateSales()"></td>
+                        <td><span class="commission-rate">0%</span></td>
+                        <td><span id="store-card-commission">0.00</span></td>
+                        <td><input type="number" class="input-field" id="store-card-discount" placeholder="27" oninput="calculateSales()"></td>
+                        <td><span id="store-card-net" class="net-amount">0.00</span></td>
                     </tr>
                     <tr class="total-row">
-                        <td><strong>TOTAL</strong></td>
+                        <td><strong data-translate="total">TOTAL</strong></td>
                         <td><strong><span id="total-gross">0.00</span></strong></td>
                         <td>-</td>
                         <td><strong><span id="total-commission">0.00</span></strong></td>
@@ -229,81 +253,100 @@
 
         <!-- Expenses Section -->
         <div class="section">
-            <h2>💸 Daily Expenses</h2>
+            <h2 data-translate="dailyExpenses">💸 Daily Expenses</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Expense Category</th>
-                        <th>Amount (TRY)</th>
-                        <th>Notes</th>
+                        <th data-translate="expenseCategory">Expense Category</th>
+                        <th data-translate="amount">Amount (TRY)</th>
+                        <th data-translate="notes">Notes</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Food & Ingredients</td>
-                        <td><input type="number" class="input-field" id="food-expense" oninput="calculateExpenses()"></td>
-                        <td><input type="text" class="input-field" id="food-notes" placeholder="Suppliers, fresh ingredients, etc."></td>
-                    </tr>
-                    <tr>
-                        <td>Staff Salaries</td>
-                        <td><input type="number" class="input-field" id="staff-expense" oninput="calculateExpenses()"></td>
-                        <td><input type="text" class="input-field" id="staff-notes" placeholder="Daily wages, tips, etc."></td>
-                    </tr>
-                    <tr>
-                        <td>Utilities</td>
-                        <td><input type="number" class="input-field" id="utilities-expense" oninput="calculateExpenses()"></td>
-                        <td><input type="text" class="input-field" id="utilities-notes" placeholder="Electricity, water, gas, etc."></td>
-                    </tr>
-                    <tr>
-                        <td>Delivery Costs</td>
-                        <td><input type="number" class="input-field" id="delivery-expense" oninput="calculateExpenses()"></td>
-                        <td><input type="text" class="input-field" id="delivery-notes" placeholder="Fuel, maintenance, etc."></td>
-                    </tr>
-                    <tr>
-                        <td>Other Expenses</td>
-                        <td><input type="number" class="input-field" id="other-expense" oninput="calculateExpenses()"></td>
-                        <td><input type="text" class="input-field" id="other-notes" placeholder="Cleaning, marketing, etc."></td>
-                    </tr>
-                    <tr class="total-row">
-                        <td><strong>TOTAL EXPENSES</strong></td>
-                        <td><strong><span id="total-expenses">0.00</span></strong></td>
-                        <td>-</td>
-                    </tr>
+                <tbody id="expenses-tbody">
+                    <!-- Expense rows will be added here dynamically -->
                 </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="2"><strong data-translate="totalExpenses">TOTAL EXPENSES</strong></td>
+                        <td><strong><span id="total-expenses">0.00</span></strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <button class="btn" onclick="addExpenseRow()" data-translate="addExpense">+ Add Expense</button>
             </table>
         </div>
 
         <!-- Daily Summary -->
         <div class="summary">
-            <h3>📈 Daily Summary</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <h3 data-translate="dailySummary">📈 Daily Summary</h3>
+            <div class="summary-grid">
                 <div>
-                    <p><strong>Total Gross Sales:</strong> <span id="summary-gross">0.00</span> TRY</p>
-                    <p><strong>Total Commission Paid:</strong> <span id="summary-commission">0.00</span> TRY</p>
-                    <p><strong>Total Net Sales:</strong> <span id="summary-net">0.00</span> TRY</p>
+                    <p><strong data-translate="totalGrossSales">Total Gross Sales:</strong> <span id="summary-gross">0.00</span> TRY</p>
+                    <p><strong data-translate="totalCommissionPaid">Total Commission Paid:</strong> <span id="summary-commission">0.00</span> TRY</p>
+                    <p><strong data-translate="totalNetSales">Total Net Sales:</strong> <span id="summary-net">0.00</span> TRY</p>
                 </div>
                 <div>
-                    <p><strong>Total Expenses:</strong> <span id="summary-expenses">0.00</span> TRY</p>
-                    <p><strong>Net Profit:</strong> <span id="summary-profit">0.00</span> TRY</p>
-                    <p><strong>Profit Margin:</strong> <span id="summary-margin">0.0</span>%</p>
+                    <p><strong data-translate="totalExpensesLabel">Total Expenses:</strong> <span id="summary-expenses">0.00</span> TRY</p>
+                    <p><strong data-translate="netProfit">Net Profit:</strong> <span id="summary-profit">0.00</span> TRY</p>
+                    <p><strong data-translate="profitMargin">Profit Margin:</strong> <span id="summary-margin">0.0</span>%</p>
+                </div>
+                <div>
+                    <p><strong data-translate="cashInStore">Cash in Store:</strong> <input type="number" class="input-field" id="cash-in-store"></p>
                 </div>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div style="text-align: center; margin-top: 30px;">
-            <button class="btn" onclick="saveReport()">💾 Save Report</button>
-            <button class="btn export-btn" onclick="exportToCSV()">📊 Export to CSV</button>
-            <button class="btn" onclick="clearAll()">🗑️ Clear All</button>
-            <button class="btn" onclick="loadSampleData()">📋 Load Sample Data</button>
+            <button class="btn" onclick="saveReport()" data-translate="saveReport">💾 Save Report</button>
+            <button class="btn export-btn" onclick="exportToExcel()" data-translate="exportToExcel">📊 Export to Excel</button>
+            <button class="btn" onclick="clearAll()" data-translate="clearAll">🗑️ Clear All</button>
+            <button class="btn" onclick="loadSampleData()" data-translate="loadSampleData">📋 Load Sample Data</button>
         </div>
 
         <!-- Saved Reports Section -->
         <div class="reports-section">
-            <h2>📁 Saved Reports</h2>
+            <h2 data-translate="savedReports">📁 Saved Reports</h2>
             <div class="saved-reports" id="saved-reports-list">
-                <p>No saved reports yet.</p>
+                <p data-translate="noSavedReports">No saved reports yet.</p>
             </div>
+        </div>
+
+        <!-- Monthly Report Section -->
+        <div class="reports-section">
+            <h2 data-translate="monthlyReport">📅 Monthly Report</h2>
+            <div style="margin-bottom: 15px;">
+                <label for="month-selector" data-translate="selectMonth">Select Month:</label>
+                <input type="month" id="month-selector" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px;">
+                <button class="btn" onclick="generateMonthlyReport()" data-translate="generateReport">Generate Report</button>
+            </div>
+            <div id="monthly-report-container" style="display: none;">
+                <h3 id="monthly-report-title"></h3>
+                <table id="monthly-report-table">
+                    <!-- Monthly report data will be displayed here -->
+                </table>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="section">
+            <h2 data-translate="inventory">📦 Inventory</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th data-translate="itemName">Item Name</th>
+                        <th data-translate="quantity">Quantity</th>
+                        <th data-translate="unit">Unit</th>
+                        <th data-translate="costPerUnit">Cost per Unit</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-tbody">
+                    <!-- Inventory items will be added here dynamically -->
+                </tbody>
+            </table>
+            <button class="btn" onclick="addInventoryItem()" data-translate="addItem">+ Add Item</button>
         </div>
     </div>
 
@@ -317,8 +360,167 @@
         // Set today's date on page load
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
+            const storedReports = localStorage.getItem('savedReports');
+            if (storedReports) {
+                savedReports = JSON.parse(storedReports);
+            }
+            addExpenseRow(); // Add an initial expense row
             updateSavedReportsList();
+            loadInventory();
+            changeLanguage(); // Set initial language
         });
+
+        const translations = {
+            en: {
+                title: "📊 Solo Restaurant Daily Accounting System",
+                reportDate: "Report Date:",
+                dailySales: "💰 Daily Sales Report",
+                platform: "Platform",
+                grossSales: "Gross Sales (TRY)",
+                commissionRate: "Commission Rate (%)",
+                commissionAmount: "Commission Amount (TRY)",
+                discountReturns: "Discount/Returns (TRY)",
+                netSales: "Net Sales (TRY)",
+                trendyol: "Trendyol",
+                yemeksepeti: "Yemeksepeti",
+                inStoreSalesCash: "In-Store (Cash)",
+                inStoreSalesCard: "In-Store (Credit Card)",
+                total: "TOTAL",
+                dailyExpenses: "💸 Daily Expenses",
+                expenseCategory: "Expense Category",
+                amount: "Amount (TRY)",
+                notes: "Notes",
+                foodIngredients: "Food & Ingredients",
+                staffSalaries: "Staff Salaries",
+                utilities: "Utilities",
+                deliveryCosts: "Delivery Costs",
+                otherExpenses: "Other Expenses",
+                advertising: "Advertising",
+                totalExpenses: "TOTAL EXPENSES",
+                addExpense: "+ Add Expense",
+                dailySummary: "📈 Daily Summary",
+                totalGrossSales: "Total Gross Sales:",
+                totalCommissionPaid: "Total Commission Paid:",
+                totalNetSales: "Total Net Sales:",
+                totalExpensesLabel: "Total Expenses:",
+                netProfit: "Net Profit:",
+                profitMargin: "Profit Margin:",
+                saveReport: "💾 Save Report",
+                exportToExcel: "📊 Export to Excel",
+                clearAll: "🗑️ Clear All",
+                loadSampleData: "📋 Load Sample Data",
+                savedReports: "📁 Saved Reports",
+                noSavedReports: "No saved reports yet.",
+                monthlyReport: "📅 Monthly Report",
+                selectMonth: "Select Month:",
+                generateReport: "Generate Report",
+                inventory: "📦 Inventory",
+                itemName: "Item Name",
+                quantity: "Quantity",
+                unit: "Unit",
+                costPerUnit: "Cost per Unit",
+                addItem: "+ Add Item",
+                inventoryValue: "Inventory Value",
+                cashInStore: "Cash in Store",
+                confirmClear: "Are you sure you want to clear all data?",
+                confirmDelete: "Are you sure you want to delete this report?",
+                notifications: {
+                    reportSaved: "Report saved successfully!",
+                    reportUpdated: "Report updated successfully!",
+                    reportExported: "Report exported successfully!",
+                    allDataCleared: "All data cleared!",
+                    sampleDataLoaded: "Sample data loaded!",
+                    reportLoaded: "Report loaded successfully!",
+                    reportDeleted: "Report deleted!",
+                }
+            },
+            ar: {
+                title: "📊 نظام المحاسبة اليومية للمطاعم",
+                reportDate: "تاريخ التقرير:",
+                dailySales: "💰 تقرير المبيعات اليومي",
+                platform: "المنصة",
+                grossSales: "إجمالي المبيعات (ليرة تركية)",
+                commissionRate: "نسبة العمولة (%)",
+                commissionAmount: "مبلغ العمولة (ليرة تركية)",
+                discountReturns: "الخصومات/المرتجعات (ليرة تركية)",
+                netSales: "صافي المبيعات (ليرة تركية)",
+                trendyol: "ترينديول",
+                yemeksepeti: "يمك سيبيتي",
+                inStoreSalesCash: "المبيعات داخل المتجر (نقداً)",
+                inStoreSalesCard: "المبيعات داخل المتجر (بطاقة ائتمان)",
+                total: "المجموع",
+                dailyExpenses: "💸 المصاريف اليومية",
+                expenseCategory: "فئة المصروف",
+                amount: "المبلغ (ليرة تركية)",
+                notes: "ملاحظات",
+                foodIngredients: "الطعام والمكونات",
+                staffSalaries: "رواتب الموظفين",
+                utilities: "خدمات",
+                deliveryCosts: "تكاليف التوصيل",
+                otherExpenses: "مصاريف أخرى",
+                advertising: "الإعلانات",
+                totalExpenses: "إجمالي المصاريف",
+                addExpense: "+ إضافة مصروف",
+                dailySummary: "📈 ملخص اليوم",
+                totalGrossSales: "إجمالي المبيعات:",
+                totalCommissionPaid: "إجمالي العمولة المدفوعة:",
+                totalNetSales: "صافي المبيعات:",
+                totalExpensesLabel: "إجمالي المصاريف:",
+                netProfit: "صافي الربح:",
+                profitMargin: "هامش الربح:",
+                saveReport: "💾 حفظ التقرير",
+                exportToExcel: "📊 تصدير إلى Excel",
+                clearAll: "🗑️ مسح الكل",
+                loadSampleData: "📋 تحميل بيانات نموذجية",
+                savedReports: "📁 التقارير المحفوظة",
+                noSavedReports: "لا توجد تقارير محفوظة حتى الآن.",
+                monthlyReport: "📅 تقرير شهري",
+                selectMonth: "اختر الشهر:",
+                generateReport: "إنشاء التقرير",
+                inventory: "📦 المخزون",
+                itemName: "اسم العنصر",
+                quantity: "الكمية",
+                unit: "الوحدة",
+                costPerUnit: "التكلفة لكل وحدة",
+                addItem: "+ إضافة عنصر",
+                inventoryValue: "قيمة المخزون",
+                cashInStore: "النقد في المتجر",
+                confirmClear: "هل أنت متأكد أنك تريد مسح جميع البيانات؟",
+                confirmDelete: "هل أنت متأكد أنك تريد حذف هذا التقرير؟",
+                notifications: {
+                    reportSaved: "تم حفظ التقرير بنجاح!",
+                    reportUpdated: "تم تحديث التقرير بنجاح!",
+                    reportExported: "تم تصدير التقرير بنجاح!",
+                    allDataCleared: "تم مسح جميع البيانات!",
+                    sampleDataLoaded: "تم تحميل البيانات النموذجية!",
+                    reportLoaded: "تم تحميل التقرير بنجاح!",
+                    reportDeleted: "تم حذف التقرير!",
+                }
+            }
+        };
+
+        function changeLanguage() {
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (t[key]) {
+                    element.textContent = t[key];
+                }
+            });
+
+            // Update direction for Arabic
+            if (lang === 'ar') {
+                document.body.style.direction = 'rtl';
+                document.body.style.textAlign = 'right';
+                document.querySelectorAll('th, td').forEach(el => el.style.textAlign = 'right');
+            } else {
+                document.body.style.direction = 'ltr';
+                document.body.style.textAlign = 'left';
+                document.querySelectorAll('th, td').forEach(el => el.style.textAlign = 'left');
+            }
+        }
 
         function calculateSales() {
             // Trendyol calculations
@@ -339,20 +541,29 @@
             document.getElementById('yemeksepeti-commission').textContent = yemeksepetiCommission.toFixed(2);
             document.getElementById('yemeksepeti-net').textContent = yemeksepetiNet.toFixed(2);
 
-            // Store calculations
-            const storeGross = parseFloat(document.getElementById('store-gross').value) || 0;
-            const storeDiscount = parseFloat(document.getElementById('store-discount').value) || 0;
-            const storeCommission = 0;
-            const storeNet = storeGross - storeDiscount;
-            
-            document.getElementById('store-commission').textContent = storeCommission.toFixed(2);
-            document.getElementById('store-net').textContent = storeNet.toFixed(2);
+            // Store (Cash) calculations
+            const storeCashGross = parseFloat(document.getElementById('store-cash-gross').value) || 0;
+            const storeCashDiscount = parseFloat(document.getElementById('store-cash-discount').value) || 0;
+            const storeCashCommission = 0;
+            const storeCashNet = storeCashGross - storeCashDiscount;
+
+            document.getElementById('store-cash-commission').textContent = storeCashCommission.toFixed(2);
+            document.getElementById('store-cash-net').textContent = storeCashNet.toFixed(2);
+
+            // Store (Credit Card) calculations
+            const storeCardGross = parseFloat(document.getElementById('store-card-gross').value) || 0;
+            const storeCardDiscount = parseFloat(document.getElementById('store-card-discount').value) || 0;
+            const storeCardCommission = 0;
+            const storeCardNet = storeCardGross - storeCardDiscount;
+
+            document.getElementById('store-card-commission').textContent = storeCardCommission.toFixed(2);
+            document.getElementById('store-card-net').textContent = storeCardNet.toFixed(2);
 
             // Totals
-            const totalGross = trendyolGross + yemeksepetiGross + storeGross;
-            const totalCommission = trendyolCommission + yemeksepetiCommission + storeCommission;
-            const totalDiscount = trendyolDiscount + yemeksepetiDiscount + storeDiscount;
-            const totalNet = trendyolNet + yemeksepetiNet + storeNet;
+            const totalGross = trendyolGross + yemeksepetiGross + storeCashGross + storeCardGross;
+            const totalCommission = trendyolCommission + yemeksepetiCommission + storeCashCommission + storeCardCommission;
+            const totalDiscount = trendyolDiscount + yemeksepetiDiscount + storeCashDiscount + storeCardDiscount;
+            const totalNet = trendyolNet + yemeksepetiNet + storeCashNet + storeCardNet;
 
             document.getElementById('total-gross').textContent = totalGross.toFixed(2);
             document.getElementById('total-commission').textContent = totalCommission.toFixed(2);
@@ -362,16 +573,50 @@
             updateSummary();
         }
 
+        function addExpenseRow() {
+            const tbody = document.getElementById('expenses-tbody');
+            const newRow = document.createElement('tr');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            const categories = [
+                t.foodIngredients,
+                t.staffSalaries,
+                t.utilities,
+                t.deliveryCosts,
+                t.otherExpenses,
+                t.advertising
+            ];
+
+            const options = categories.map(category => `<option value="${category}">${category}</option>`).join('');
+
+            newRow.innerHTML = `
+                <td>
+                    <select class="input-field expense-category">
+                        ${options}
+                    </select>
+                </td>
+                <td><input type="number" class="input-field expense-amount" oninput="calculateExpenses()"></td>
+                <td><input type="text" class="input-field expense-notes" placeholder="Notes"></td>
+                <td><button class="btn" onclick="removeExpenseRow(this)">-</button></td>
+            `;
+            tbody.appendChild(newRow);
+            changeLanguage();
+        }
+
+        function removeExpenseRow(button) {
+            button.closest('tr').remove();
+            calculateExpenses();
+        }
+
         function calculateExpenses() {
-            const food = parseFloat(document.getElementById('food-expense').value) || 0;
-            const staff = parseFloat(document.getElementById('staff-expense').value) || 0;
-            const utilities = parseFloat(document.getElementById('utilities-expense').value) || 0;
-            const delivery = parseFloat(document.getElementById('delivery-expense').value) || 0;
-            const other = parseFloat(document.getElementById('other-expense').value) || 0;
+            let totalExpenses = 0;
+            document.querySelectorAll('#expenses-tbody tr').forEach(row => {
+                const amount = parseFloat(row.querySelector('.expense-amount').value) || 0;
+                totalExpenses += amount;
+            });
             
-            const totalExpenses = food + staff + utilities + delivery + other;
             document.getElementById('total-expenses').textContent = totalExpenses.toFixed(2);
-            
             updateSummary();
         }
 
@@ -409,102 +654,147 @@
                         commission: document.getElementById('yemeksepeti-commission').textContent,
                         net: document.getElementById('yemeksepeti-net').textContent
                     },
-                    store: {
-                        gross: document.getElementById('store-gross').value || '0',
-                        discount: document.getElementById('store-discount').value || '0',
-                        net: document.getElementById('store-net').textContent
+                    storeCash: {
+                        gross: document.getElementById('store-cash-gross').value || '0',
+                        discount: document.getElementById('store-cash-discount').value || '0',
+                        net: document.getElementById('store-cash-net').textContent
+                    },
+                    storeCard: {
+                        gross: document.getElementById('store-card-gross').value || '0',
+                        discount: document.getElementById('store-card-discount').value || '0',
+                        net: document.getElementById('store-card-net').textContent
                     }
                 },
-                expenses: {
-                    food: document.getElementById('food-expense').value || '0',
-                    staff: document.getElementById('staff-expense').value || '0',
-                    utilities: document.getElementById('utilities-expense').value || '0',
-                    delivery: document.getElementById('delivery-expense').value || '0',
-                    other: document.getElementById('other-expense').value || '0',
-                    notes: {
-                        food: document.getElementById('food-notes').value || '',
-                        staff: document.getElementById('staff-notes').value || '',
-                        utilities: document.getElementById('utilities-notes').value || '',
-                        delivery: document.getElementById('delivery-notes').value || '',
-                        other: document.getElementById('other-notes').value || ''
-                    }
-                },
+                expenses: Array.from(document.querySelectorAll('#expenses-tbody tr')).map(row => ({
+                    category: row.querySelector('.expense-category').value,
+                    amount: row.querySelector('.expense-amount').value,
+                    notes: row.querySelector('.expense-notes').value
+                })),
                 summary: {
                     totalGross: document.getElementById('summary-gross').textContent,
                     totalNet: document.getElementById('summary-net').textContent,
                     totalExpenses: document.getElementById('summary-expenses').textContent,
                     netProfit: document.getElementById('summary-profit').textContent,
-                    profitMargin: document.getElementById('summary-margin').textContent
+                    profitMargin: document.getElementById('summary-margin').textContent,
+                    cashInStore: document.getElementById('cash-in-store').value
                 }
             };
             
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
             // Check if report for this date already exists
             const existingIndex = savedReports.findIndex(report => report.date === reportData.date);
             if (existingIndex !== -1) {
                 savedReports[existingIndex] = reportData;
-                showNotification('Report updated successfully!', 'success');
+                showNotification(t.notifications.reportUpdated, 'success');
             } else {
                 savedReports.push(reportData);
-                showNotification('Report saved successfully!', 'success');
+                showNotification(t.notifications.reportSaved, 'success');
             }
-            
+
+            localStorage.setItem('savedReports', JSON.stringify(savedReports));
             updateSavedReportsList();
         }
 
-        function exportToCSV() {
+        function exportToExcel() {
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
             const date = document.getElementById('report-date').value;
-            const csvContent = generateCSV();
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `daily_report_${date}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification('Report exported successfully!', 'success');
-        }
 
-        function generateCSV() {
-            const date = document.getElementById('report-date').value;
-            let csv = `Daily Restaurant Report - ${date}\n\n`;
+            const wb = XLSX.utils.book_new();
+            const ws_name = "Daily Report";
+
+            // --- Data ---
+            let data = [
+                [t.dailySales],
+                [t.platform, t.grossSales, t.commissionRate, t.commissionAmount, t.discountReturns, t.netSales],
+                [t.trendyol, document.getElementById('trendyol-gross').value, '36.6%', document.getElementById('trendyol-commission').textContent, document.getElementById('trendyol-discount').value, document.getElementById('trendyol-net').textContent],
+                [t.yemeksepeti, document.getElementById('yemeksepeti-gross').value, '38.4%', document.getElementById('yemeksepeti-commission').textContent, document.getElementById('yemeksepeti-discount').value, document.getElementById('yemeksepeti-net').textContent],
+                [t.inStoreSalesCash, document.getElementById('store-cash-gross').value, '0%', document.getElementById('store-cash-commission').textContent, document.getElementById('store-cash-discount').value, document.getElementById('store-cash-net').textContent],
+                [t.inStoreSalesCard, document.getElementById('store-card-gross').value, '0%', document.getElementById('store-card-commission').textContent, document.getElementById('store-card-discount').value, document.getElementById('store-card-net').textContent],
+                [t.total, document.getElementById('total-gross').textContent, '', document.getElementById('total-commission').textContent, document.getElementById('total-discount').textContent, document.getElementById('total-net').textContent],
+                [], // Spacer
+                [t.dailyExpenses],
+                [t.expenseCategory, t.amount, t.notes]
+            ];
+            document.querySelectorAll('#expenses-tbody tr').forEach(row => {
+                data.push([
+                    row.querySelector('.expense-category').value,
+                    row.querySelector('.expense-amount').value,
+                    row.querySelector('.expense-notes').value
+                ]);
+            });
+            data.push([t.totalExpenses, document.getElementById('total-expenses').textContent, '']);
+            data.push([]); // Spacer
+            data.push([t.dailySummary]);
+            data.push([t.totalGrossSales, document.getElementById('summary-gross').textContent]);
+            data.push([t.totalCommissionPaid, document.getElementById('summary-commission').textContent]);
+            data.push([t.totalNetSales, document.getElementById('summary-net').textContent]);
+            data.push([t.totalExpensesLabel, document.getElementById('summary-expenses').textContent]);
+            data.push([t.netProfit, document.getElementById('summary-profit').textContent]);
+            data.push([t.profitMargin, document.getElementById('summary-margin').textContent + '%']);
+            data.push([t.cashInStore, document.getElementById('cash-in-store').value]);
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, ws_name);
+
+            // --- Styling ---
+            const titleStyle = { font: { bold: true, sz: 18, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "2F75B5" } }, alignment: { horizontal: "center", vertical: "center" } };
+            const headerStyle = { font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "5A9BD5" } }, alignment: { horizontal: "center" } };
+            const totalStyle = { font: { bold: true, sz: 12 }, fill: { fgColor: { rgb: "F2F2F2" } } };
+            const summaryLabelStyle = { font: { bold: true } };
+
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+                { s: { r: 8, c: 0 }, e: { r: 8, c: 2 } },
+                { s: { r: data.length - 8, c: 0 }, e: { r: data.length - 8, c: 1 } }
+            ];
+
+            ws['A1'].s = titleStyle;
+            ws['A9'].s = titleStyle;
+            ws['A' + (data.length - 7)].s = titleStyle;
+
+            ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'].forEach(cell => ws[cell].s = headerStyle);
+            ['A10', 'B10', 'C10'].forEach(cell => ws[cell].s = headerStyle);
             
-            csv += `SALES REPORT\n`;
-            csv += `Platform,Gross Sales,Commission Rate,Commission Amount,Discounts,Net Sales\n`;
-            csv += `Trendyol,${document.getElementById('trendyol-gross').value || '0'},36.6%,${document.getElementById('trendyol-commission').textContent},${document.getElementById('trendyol-discount').value || '0'},${document.getElementById('trendyol-net').textContent}\n`;
-            csv += `Yemeksepeti,${document.getElementById('yemeksepeti-gross').value || '0'},40%,${document.getElementById('yemeksepeti-commission').textContent},${document.getElementById('yemeksepeti-discount').value || '0'},${document.getElementById('yemeksepeti-net').textContent}\n`;
-            csv += `In-Store,${document.getElementById('store-gross').value || '0'},0%,${document.getElementById('store-commission').textContent},${document.getElementById('store-discount').value || '0'},${document.getElementById('store-net').textContent}\n`;
-            csv += `TOTAL,${document.getElementById('total-gross').textContent},-,${document.getElementById('total-commission').textContent},${document.getElementById('total-discount').textContent},${document.getElementById('total-net').textContent}\n\n`;
+            for (let i = 14; i < data.length; i++) {
+                ws['A' + (i + 1)].s = summaryLabelStyle;
+            }
             
-            csv += `EXPENSES\n`;
-            csv += `Category,Amount,Notes\n`;
-            csv += `Food & Ingredients,${document.getElementById('food-expense').value || '0'},${document.getElementById('food-notes').value || ''}\n`;
-            csv += `Staff Salaries,${document.getElementById('staff-expense').value || '0'},${document.getElementById('staff-notes').value || ''}\n`;
-            csv += `Utilities,${document.getElementById('utilities-expense').value || '0'},${document.getElementById('utilities-notes').value || ''}\n`;
-            csv += `Delivery Costs,${document.getElementById('delivery-expense').value || '0'},${document.getElementById('delivery-notes').value || ''}\n`;
-            csv += `Other Expenses,${document.getElementById('other-expense').value || '0'},${document.getElementById('other-notes').value || ''}\n`;
-            csv += `TOTAL EXPENSES,${document.getElementById('total-expenses').textContent},-\n\n`;
+            ws['A7'].s = totalStyle;
+            ws['B7'].s = totalStyle;
+            ws['D7'].s = totalStyle;
+            ws['E7'].s = totalStyle;
+            ws['F7'].s = totalStyle;
+            ws['A' + (data.length - 2)].s = totalStyle;
+            ws['B' + (data.length - 2)].s = totalStyle;
+
+
+            ws['!cols'] = [
+                { wch: 25 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 20 },
+                { wch: 20 },
+                { wch: 15 }
+            ];
+
+
+            // --- Export ---
+            XLSX.writeFile(wb, `daily_report_${date}.xlsx`);
             
-            csv += `SUMMARY\n`;
-            csv += `Total Gross Sales,${document.getElementById('summary-gross').textContent}\n`;
-            csv += `Total Commission Paid,${document.getElementById('summary-commission').textContent}\n`;
-            csv += `Total Net Sales,${document.getElementById('summary-net').textContent}\n`;
-            csv += `Total Expenses,${document.getElementById('summary-expenses').textContent}\n`;
-            csv += `Net Profit,${document.getElementById('summary-profit').textContent}\n`;
-            csv += `Profit Margin,${document.getElementById('summary-margin').textContent}%\n`;
-            
-            return csv;
+            showNotification(t.notifications.reportExported, 'success');
         }
 
         function clearAll() {
-            if (confirm('Are you sure you want to clear all data?')) {
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+            if (confirm(t.confirmClear)) {
                 document.querySelectorAll('.input-field').forEach(input => input.value = '');
                 calculateSales();
                 calculateExpenses();
-                showNotification('All data cleared!', 'success');
+                showNotification(t.notifications.allDataCleared, 'success');
             }
         }
 
@@ -514,24 +804,36 @@
             document.getElementById('trendyol-discount').value = '270';
             document.getElementById('yemeksepeti-gross').value = '3285';
             document.getElementById('yemeksepeti-discount').value = '980';
-            document.getElementById('store-gross').value = '6675';
-            document.getElementById('store-discount').value = '47';
-            
-            document.getElementById('food-expense').value = '8500';
-            document.getElementById('staff-expense').value = '2200';
-            document.getElementById('utilities-expense').value = '850';
-            document.getElementById('delivery-expense').value = '450';
-            document.getElementById('other-expense').value = '300';
-            
-            document.getElementById('food-notes').value = 'Fresh ingredients from local suppliers';
-            document.getElementById('staff-notes').value = 'Daily wages for 6 staff members';
-            document.getElementById('utilities-notes').value = 'Electricity and water bills';
-            document.getElementById('delivery-notes').value = 'Fuel and vehicle maintenance';
-            document.getElementById('other-notes').value = 'Cleaning supplies and marketing';
+            document.getElementById('store-cash-gross').value = '4000';
+            document.getElementById('store-cash-discount').value = '20';
+            document.getElementById('store-card-gross').value = '2675';
+            document.getElementById('store-card-discount').value = '27';
+            document.getElementById('cash-in-store').value = '1000';
+
+            const expensesTbody = document.getElementById('expenses-tbody');
+            expensesTbody.innerHTML = ''; // Clear existing rows
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            const sampleExpenses = [
+                { category: t.foodIngredients, amount: '8500', notes: 'Fresh ingredients from local suppliers' },
+                { category: t.staffSalaries, amount: '2200', notes: 'Daily wages for 6 staff members' },
+                { category: t.utilities, amount: '850', notes: 'Electricity and water bills' },
+                { category: t.deliveryCosts, amount: '450', notes: 'Fuel and vehicle maintenance' },
+                { category: t.otherExpenses, amount: '300', notes: 'Cleaning supplies and marketing' }
+            ];
+
+            sampleExpenses.forEach(expense => {
+                addExpenseRow();
+                const newRow = expensesTbody.lastChild;
+                newRow.querySelector('.expense-category').value = expense.category;
+                newRow.querySelector('.expense-amount').value = expense.amount;
+                newRow.querySelector('.expense-notes').value = expense.notes;
+            });
             
             calculateSales();
             calculateExpenses();
-            showNotification('Sample data loaded!', 'success');
+            showNotification(t.notifications.sampleDataLoaded, 'success');
         }
 
         function showNotification(message, type) {
@@ -546,16 +848,18 @@
 
         function updateSavedReportsList() {
             const listContainer = document.getElementById('saved-reports-list');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
             
             if (savedReports.length === 0) {
-                listContainer.innerHTML = '<p>No saved reports yet.</p>';
+                listContainer.innerHTML = `<p>${t.noSavedReports}</p>`;
                 return;
             }
             
             listContainer.innerHTML = savedReports.map((report, index) => `
                 <div class="report-item">
                     <div>
-                        <strong>${report.date}</strong> - Profit: ${report.summary.netProfit} TRY
+                        <strong>${report.date}</strong> - ${t.netProfit} ${report.summary.netProfit} TRY
                         <br><small>Saved: ${new Date(report.timestamp).toLocaleString()}</small>
                     </div>
                     <div>
@@ -578,38 +882,176 @@
             document.getElementById('trendyol-discount').value = report.sales.trendyol.discount;
             document.getElementById('yemeksepeti-gross').value = report.sales.yemeksepeti.gross;
             document.getElementById('yemeksepeti-discount').value = report.sales.yemeksepeti.discount;
-            document.getElementById('store-gross').value = report.sales.store.gross;
-            document.getElementById('store-discount').value = report.sales.store.discount;
+            document.getElementById('store-cash-gross').value = report.sales.storeCash.gross;
+            document.getElementById('store-cash-discount').value = report.sales.storeCash.discount;
+            document.getElementById('store-card-gross').value = report.sales.storeCard.gross;
+            document.getElementById('store-card-discount').value = report.sales.storeCard.discount;
             
             // Load expenses data
-            document.getElementById('food-expense').value = report.expenses.food;
-            document.getElementById('staff-expense').value = report.expenses.staff;
-            document.getElementById('utilities-expense').value = report.expenses.utilities;
-            document.getElementById('delivery-expense').value = report.expenses.delivery;
-            document.getElementById('other-expense').value = report.expenses.other;
-            
-            // Load notes if they exist
-            if (report.expenses.notes) {
-                document.getElementById('food-notes').value = report.expenses.notes.food || '';
-                document.getElementById('staff-notes').value = report.expenses.notes.staff || '';
-                document.getElementById('utilities-notes').value = report.expenses.notes.utilities || '';
-                document.getElementById('delivery-notes').value = report.expenses.notes.delivery || '';
-                document.getElementById('other-notes').value = report.expenses.notes.other || '';
+            const expensesTbody = document.getElementById('expenses-tbody');
+            expensesTbody.innerHTML = ''; // Clear existing rows
+            if (report.expenses && Array.isArray(report.expenses)) {
+                report.expenses.forEach(expense => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td><input type="text" class="input-field expense-category" value="${expense.category}"></td>
+                        <td><input type="number" class="input-field expense-amount" value="${expense.amount}" oninput="calculateExpenses()"></td>
+                        <td><input type="text" class="input-field expense-notes" value="${expense.notes}"></td>
+                        <td><button class="btn" onclick="removeExpenseRow(this)">-</button></td>
+                    `;
+                    expensesTbody.appendChild(newRow);
+                });
+            }
+
+            // Load summary data
+            if(report.summary.cashInStore) {
+                document.getElementById('cash-in-store').value = report.summary.cashInStore;
             }
             
             // Recalculate everything
             calculateSales();
             calculateExpenses();
             
-            showNotification('Report loaded successfully!', 'success');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+            showNotification(t.notifications.reportLoaded, 'success');
         }
 
         function deleteReport(index) {
-            if (confirm('Are you sure you want to delete this report?')) {
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+            if (confirm(t.confirmDelete)) {
                 savedReports.splice(index, 1);
+                localStorage.setItem('savedReports', JSON.stringify(savedReports));
                 updateSavedReportsList();
-                showNotification('Report deleted!', 'success');
+                showNotification(t.notifications.reportDeleted, 'success');
             }
+        }
+
+        function generateMonthlyReport() {
+            const monthSelector = document.getElementById('month-selector');
+            const selectedMonth = monthSelector.value;
+            if (!selectedMonth) {
+                alert('Please select a month.');
+                return;
+            }
+
+            const [year, month] = selectedMonth.split('-');
+            const reportsForMonth = savedReports.filter(report => {
+                const reportDate = new Date(report.date);
+                return reportDate.getFullYear() == year && (reportDate.getMonth() + 1) == month;
+            });
+
+            if (reportsForMonth.length === 0) {
+                alert('No reports found for the selected month.');
+                return;
+            }
+
+            let totalGross = 0;
+            let totalCommission = 0;
+            let totalNetSales = 0;
+            let totalExpenses = 0;
+            let totalProfit = 0;
+
+            reportsForMonth.forEach(report => {
+                totalGross += parseFloat(report.summary.totalGross);
+                totalCommission += parseFloat(report.summary.totalCommission);
+                totalNetSales += parseFloat(report.summary.totalNet);
+                totalExpenses += parseFloat(report.summary.totalExpenses);
+                totalProfit += parseFloat(report.summary.netProfit);
+            });
+
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+            
+            document.getElementById('monthly-report-title').textContent = `Report for ${selectedMonth}`;
+            const table = document.getElementById('monthly-report-table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>${t.dailySummary}</th>
+                        <th>${t.amount}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>${t.totalGrossSales}</td><td>${totalGross.toFixed(2)}</td></tr>
+                    <tr><td>${t.totalCommissionPaid}</td><td>${totalCommission.toFixed(2)}</td></tr>
+                    <tr><td>${t.totalNetSales}</td><td>${totalNetSales.toFixed(2)}</td></tr>
+                    <tr><td>${t.totalExpensesLabel}</td><td>${totalExpenses.toFixed(2)}</td></tr>
+                    <tr><td>${t.netProfit}</td><td>${totalProfit.toFixed(2)}</td></tr>
+                </tbody>
+                <tfoot id="monthly-report-inventory">
+                </tfoot>
+            `;
+
+            document.getElementById('monthly-report-container').style.display = 'block';
+            calculateInventoryCost(year, month);
+        }
+
+        let inventory = [];
+
+        function addInventoryItem() {
+            const tbody = document.getElementById('inventory-tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" class="input-field inventory-name" placeholder="Item Name"></td>
+                <td><input type="number" class="input-field inventory-quantity"></td>
+                <td><input type="text" class="input-field inventory-unit" placeholder="e.g., kg, pcs"></td>
+                <td><input type="number" class="input-field inventory-cost"></td>
+                <td><button class="btn" onclick="removeInventoryItem(this)">-</button></td>
+            `;
+            tbody.appendChild(newRow);
+        }
+
+        function removeInventoryItem(button) {
+            button.closest('tr').remove();
+            saveInventory();
+        }
+
+        function saveInventory() {
+            inventory = Array.from(document.querySelectorAll('#inventory-tbody tr')).map(row => ({
+                name: row.querySelector('.inventory-name').value,
+                quantity: row.querySelector('.inventory-quantity').value,
+                unit: row.querySelector('.inventory-unit').value,
+                cost: row.querySelector('.inventory-cost').value
+            }));
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        }
+
+        function loadInventory() {
+            const storedInventory = localStorage.getItem('inventory');
+            if (storedInventory) {
+                inventory = JSON.parse(storedInventory);
+                const tbody = document.getElementById('inventory-tbody');
+                tbody.innerHTML = '';
+                inventory.forEach(item => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td><input type="text" class="input-field inventory-name" value="${item.name}" onchange="saveInventory()"></td>
+                        <td><input type="number" class="input-field inventory-quantity" value="${item.quantity}" onchange="saveInventory()"></td>
+                        <td><input type="text" class="input-field inventory-unit" value="${item.unit}" onchange="saveInventory()"></td>
+                        <td><input type="number" class="input-field inventory-cost" value="${item.cost}" onchange="saveInventory()"></td>
+                        <td><button class="btn" onclick="removeInventoryItem(this)">-</button></td>
+                    `;
+                    tbody.appendChild(newRow);
+                });
+            }
+        }
+
+        function calculateInventoryCost(year, month) {
+            const t = translations[document.getElementById('language-selector').value];
+            let totalCost = 0;
+            inventory.forEach(item => {
+                totalCost += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0);
+            });
+
+            const inventoryFooter = document.getElementById('monthly-report-inventory');
+            inventoryFooter.innerHTML = `
+                <tr>
+                    <td><strong>${t.inventoryValue}</strong></td>
+                    <td><strong>${totalCost.toFixed(2)}</strong></td>
+                </tr>
+            `;
         }
     </script>
 </body>
