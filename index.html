@@ -181,7 +181,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 data-translate="title">📊 Solo Restaurant Daily Accounting System</h1>
+        <h1 data-translate="title">📊 Restaurant Daily Accounting System</h1>
         
         <div class="date-selector">
             <label for="report-date" data-translate="reportDate">Report Date: </label>
@@ -372,7 +372,7 @@
 
         const translations = {
             en: {
-                title: "📊 Solo Restaurant Daily Accounting System",
+                title: "📊 Restaurant Daily Accounting System",
                 reportDate: "Report Date:",
                 dailySales: "💰 Daily Sales Report",
                 platform: "Platform",
@@ -759,16 +759,16 @@
             ['A10', 'B10', 'C10'].forEach(cell => ws[cell].s = headerStyle);
             
             for (let i = 14; i < data.length; i++) {
-                ws['A' + (i + 1)].s = summaryLabelStyle;
+                if(ws['A' + (i + 1)]) ws['A' + (i + 1)].s = summaryLabelStyle;
             }
             
-            ws['A7'].s = totalStyle;
-            ws['B7'].s = totalStyle;
-            ws['D7'].s = totalStyle;
-            ws['E7'].s = totalStyle;
-            ws['F7'].s = totalStyle;
-            ws['A' + (data.length - 2)].s = totalStyle;
-            ws['B' + (data.length - 2)].s = totalStyle;
+            if(ws['A7']) ws['A7'].s = totalStyle;
+            if(ws['B7']) ws['B7'].s = totalStyle;
+            if(ws['D7']) ws['D7'].s = totalStyle;
+            if(ws['E7']) ws['E7'].s = totalStyle;
+            if(ws['F7']) ws['F7'].s = totalStyle;
+            if(ws['A' + (data.length - 2)]) ws['A' + (data.length - 2)].s = totalStyle;
+            if(ws['B' + (data.length - 2)]) ws['B' + (data.length - 2)].s = totalStyle;
 
 
             ws['!cols'] = [
