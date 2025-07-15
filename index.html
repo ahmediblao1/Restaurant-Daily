@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Daily Accounting System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -169,30 +170,39 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Restaurant Daily Accounting System</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 data-key="restaurant_accounting_system">📊 Restaurant Daily Accounting System</h1>
+            <div class="language-selector">
+                <label for="language" data-key="language">Language: </label>
+                <select id="language" onchange="toggleLanguage()">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+        </div>
         
         <div class="date-selector">
-            <label for="report-date">Report Date: </label>
+            <label for="report-date" data-key="report_date">Report Date: </label>
             <input type="date" id="report-date" value="">
         </div>
 
         <!-- Sales Section -->
         <div class="section">
-            <h2>💰 Daily Sales Report</h2>
+            <h2 data-key="daily_sales_report">💰 Daily Sales Report</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Platform</th>
-                        <th>Gross Sales (TRY)</th>
-                        <th>Commission Rate (%)</th>
-                        <th>Commission Amount (TRY)</th>
-                        <th>Discount/Returns (TRY)</th>
-                        <th>Net Sales (TRY)</th>
+                        <th data-key="platform">Platform</th>
+                        <th data-key="gross_sales">Gross Sales (TRY)</th>
+                        <th data-key="commission_rate">Commission Rate (%)</th>
+                        <th data-key="commission_amount">Commission Amount (TRY)</th>
+                        <th data-key="discount_returns">Discount/Returns (TRY)</th>
+                        <th data-key="net_sales">Net Sales (TRY)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr class="platform-row">
-                        <td><strong>Trendyol</strong></td>
+                        <td><strong data-key="trendyol">Trendyol</strong></td>
                         <td><input type="number" class="input-field" id="trendyol-gross" placeholder="16,575" oninput="calculateSales()"></td>
                         <td><span class="commission-rate">36.6%</span></td>
                         <td><span id="trendyol-commission">0.00</span></td>
@@ -200,7 +210,7 @@
                         <td><span id="trendyol-net" class="net-amount">0.00</span></td>
                     </tr>
                     <tr class="platform-row">
-                        <td><strong>Yemeksepeti</strong></td>
+                        <td><strong data-key="yemeksepeti">Yemeksepeti</strong></td>
                         <td><input type="number" class="input-field" id="yemeksepeti-gross" placeholder="3,285" oninput="calculateSales()"></td>
                         <td><span class="commission-rate">38.4%</span></td>
                         <td><span id="yemeksepeti-commission">0.00</span></td>
@@ -208,15 +218,39 @@
                         <td><span id="yemeksepeti-net" class="net-amount">0.00</span></td>
                     </tr>
                     <tr class="platform-row">
-                        <td><strong>In-Store Sales</strong></td>
+                        <td><strong data-key="in_store_sales">In-Store Sales</strong></td>
                         <td><input type="number" class="input-field" id="store-gross" placeholder="6,675" oninput="calculateSales()"></td>
                         <td><span class="commission-rate">0%</span></td>
                         <td><span id="store-commission">0.00</span></td>
                         <td><input type="number" class="input-field" id="store-discount" placeholder="47" oninput="calculateSales()"></td>
                         <td><span id="store-net" class="net-amount">0.00</span></td>
                     </tr>
+                    <tr class="platform-row">
+                        <td><strong data-key="in_salon_sales">In Salon Sales</strong></td>
+                        <td><input type="number" class="input-field" id="salon-gross" placeholder="0" oninput="calculateSales()"></td>
+                        <td><span class="commission-rate">0%</span></td>
+                        <td><span id="salon-commission">0.00</span></td>
+                        <td><input type="number" class="input-field" id="salon-discount" placeholder="0" oninput="calculateSales()"></td>
+                        <td><span id="salon-net" class="net-amount">0.00</span></td>
+                    </tr>
+                    <tr class="platform-row">
+                        <td><strong data-key="nakit">Nakit</strong></td>
+                        <td><input type="number" class="input-field" id="nakit-gross" placeholder="0" oninput="calculateSales()"></td>
+                        <td><span class="commission-rate">0%</span></td>
+                        <td><span id="nakit-commission">0.00</span></td>
+                        <td><input type="number" class="input-field" id="nakit-discount" placeholder="0" oninput="calculateSales()"></td>
+                        <td><span id="nakit-net" class="net-amount">0.00</span></td>
+                    </tr>
+                    <tr class="platform-row">
+                        <td><strong data-key="cars_sales">Cars Sales</strong></td>
+                        <td><input type="number" class="input-field" id="cars-gross" placeholder="0" oninput="calculateSales()"></td>
+                        <td><span class="commission-rate">0%</span></td>
+                        <td><span id="cars-commission">0.00</span></td>
+                        <td><input type="number" class="input-field" id="cars-discount" placeholder="0" oninput="calculateSales()"></td>
+                        <td><span id="cars-net" class="net-amount">0.00</span></td>
+                    </tr>
                     <tr class="total-row">
-                        <td><strong>TOTAL</strong></td>
+                        <td><strong data-key="total">TOTAL</strong></td>
                         <td><strong><span id="total-gross">0.00</span></strong></td>
                         <td>-</td>
                         <td><strong><span id="total-commission">0.00</span></strong></td>
@@ -229,43 +263,43 @@
 
         <!-- Expenses Section -->
         <div class="section">
-            <h2>💸 Daily Expenses</h2>
+            <h2 data-key="daily_expenses">💸 Daily Expenses</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Expense Category</th>
-                        <th>Amount (TRY)</th>
-                        <th>Notes</th>
+                        <th data-key="expense_category">Expense Category</th>
+                        <th data-key="amount">Amount (TRY)</th>
+                        <th data-key="notes">Notes</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Food & Ingredients</td>
+                        <td data-key="food_ingredients">Food & Ingredients</td>
                         <td><input type="number" class="input-field" id="food-expense" oninput="calculateExpenses()"></td>
                         <td><input type="text" class="input-field" id="food-notes" placeholder="Suppliers, fresh ingredients, etc."></td>
                     </tr>
                     <tr>
-                        <td>Staff Salaries</td>
+                        <td data-key="staff_salaries">Staff Salaries</td>
                         <td><input type="number" class="input-field" id="staff-expense" oninput="calculateExpenses()"></td>
                         <td><input type="text" class="input-field" id="staff-notes" placeholder="Daily wages, tips, etc."></td>
                     </tr>
                     <tr>
-                        <td>Utilities</td>
+                        <td data-key="utilities">Utilities</td>
                         <td><input type="number" class="input-field" id="utilities-expense" oninput="calculateExpenses()"></td>
                         <td><input type="text" class="input-field" id="utilities-notes" placeholder="Electricity, water, gas, etc."></td>
                     </tr>
                     <tr>
-                        <td>Delivery Costs</td>
+                        <td data-key="delivery_costs">Delivery Costs</td>
                         <td><input type="number" class="input-field" id="delivery-expense" oninput="calculateExpenses()"></td>
                         <td><input type="text" class="input-field" id="delivery-notes" placeholder="Fuel, maintenance, etc."></td>
                     </tr>
                     <tr>
-                        <td>Other Expenses</td>
+                        <td data-key="other_expenses">Other Expenses</td>
                         <td><input type="number" class="input-field" id="other-expense" oninput="calculateExpenses()"></td>
                         <td><input type="text" class="input-field" id="other-notes" placeholder="Cleaning, marketing, etc."></td>
                     </tr>
                     <tr class="total-row">
-                        <td><strong>TOTAL EXPENSES</strong></td>
+                        <td><strong data-key="total_expenses">TOTAL EXPENSES</strong></td>
                         <td><strong><span id="total-expenses">0.00</span></strong></td>
                         <td>-</td>
                     </tr>
@@ -275,34 +309,35 @@
 
         <!-- Daily Summary -->
         <div class="summary">
-            <h3>📈 Daily Summary</h3>
+            <h3 data-key="daily_summary">📈 Daily Summary</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div>
-                    <p><strong>Total Gross Sales:</strong> <span id="summary-gross">0.00</span> TRY</p>
-                    <p><strong>Total Commission Paid:</strong> <span id="summary-commission">0.00</span> TRY</p>
-                    <p><strong>Total Net Sales:</strong> <span id="summary-net">0.00</span> TRY</p>
+                    <p><strong data-key="total_gross_sales">Total Gross Sales:</strong> <span id="summary-gross">0.00</span> TRY</p>
+                    <p><strong data-key="total_commission_paid">Total Commission Paid:</strong> <span id="summary-commission">0.00</span> TRY</p>
+                    <p><strong data-key="total_net_sales">Total Net Sales:</strong> <span id="summary-net">0.00</span> TRY</p>
                 </div>
                 <div>
-                    <p><strong>Total Expenses:</strong> <span id="summary-expenses">0.00</span> TRY</p>
-                    <p><strong>Net Profit:</strong> <span id="summary-profit">0.00</span> TRY</p>
-                    <p><strong>Profit Margin:</strong> <span id="summary-margin">0.0</span>%</p>
+                    <p><strong data-key="total_expenses">Total Expenses:</strong> <span id="summary-expenses">0.00</span> TRY</p>
+                    <p><strong data-key="net_profit">Net Profit:</strong> <span id="summary-profit">0.00</span> TRY</p>
+                    <p><strong data-key="profit_margin">Profit Margin:</strong> <span id="summary-margin">0.0</span>%</p>
                 </div>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div style="text-align: center; margin-top: 30px;">
-            <button class="btn" onclick="saveReport()">💾 Save Report</button>
-            <button class="btn export-btn" onclick="exportToCSV()">📊 Export to CSV</button>
-            <button class="btn" onclick="clearAll()">🗑️ Clear All</button>
-            <button class="btn" onclick="loadSampleData()">📋 Load Sample Data</button>
+            <button class="btn" onclick="saveReport()" data-key="save_report">💾 Save Report</button>
+            <button class="btn export-btn" onclick="exportToXLSX()" data-key="export_to_xlsx">📊 Export to XLSX</button>
+            <button class="btn" onclick="generateMonthlyReport()" data-key="monthly_report">📅 Monthly Report</button>
+            <button class="btn" onclick="clearAll()" data-key="clear_all">🗑️ Clear All</button>
+            <button class="btn" onclick="loadSampleData()" data-key="load_sample_data">📋 Load Sample Data</button>
         </div>
 
         <!-- Saved Reports Section -->
         <div class="reports-section">
-            <h2>📁 Saved Reports</h2>
+            <h2 data-key="saved_reports">📁 Saved Reports</h2>
             <div class="saved-reports" id="saved-reports-list">
-                <p>No saved reports yet.</p>
+                <p data-key="no_saved_reports">No saved reports yet.</p>
             </div>
         </div>
     </div>
@@ -311,6 +346,105 @@
     <div id="notification" class="notification"></div>
 
     <script>
+        const translations = {
+            en: {
+                restaurant_accounting_system: "📊 Restaurant Daily Accounting System",
+                report_date: "Report Date:",
+                daily_sales_report: "💰 Daily Sales Report",
+                platform: "Platform",
+                gross_sales: "Gross Sales (TRY)",
+                commission_rate: "Commission Rate (%)",
+                commission_amount: "Commission Amount (TRY)",
+                discount_returns: "Discount/Returns (TRY)",
+                net_sales: "Net Sales (TRY)",
+                trendyol: "Trendyol",
+                yemeksepeti: "Yemeksepeti",
+                in_store_sales: "In-Store Sales",
+                total: "TOTAL",
+                daily_expenses: "💸 Daily Expenses",
+                expense_category: "Expense Category",
+                amount: "Amount (TRY)",
+                notes: "Notes",
+                food_ingredients: "Food & Ingredients",
+                staff_salaries: "Staff Salaries",
+                utilities: "Utilities",
+                delivery_costs: "Delivery Costs",
+                other_expenses: "Other Expenses",
+                total_expenses: "TOTAL EXPENSES",
+                daily_summary: "📈 Daily Summary",
+                total_gross_sales: "Total Gross Sales:",
+                total_commission_paid: "Total Commission Paid:",
+                total_net_sales: "Total Net Sales:",
+                net_profit: "Net Profit:",
+                profit_margin: "Profit Margin:",
+                save_report: "💾 Save Report",
+                export_to_xlsx: "📊 Export to XLSX",
+                monthly_report: "📅 Monthly Report",
+                clear_all: "🗑️ Clear All",
+                load_sample_data: "📋 Load Sample Data",
+                saved_reports: "📁 Saved Reports",
+                no_saved_reports: "No saved reports yet.",
+                language: "Language:",
+                in_salon_sales: "In Salon Sales",
+                nakit: "Nakit",
+                cars_sales: "Cars Sales",
+            },
+            ar: {
+                restaurant_accounting_system: "📊 نظام المحاسبة اليومية للمطاعم",
+                report_date: "تاريخ التقرير:",
+                daily_sales_report: "💰 تقرير المبيعات اليومي",
+                platform: "المنصة",
+                gross_sales: "إجمالي المبيعات (ليرة تركية)",
+                commission_rate: "نسبة العمولة (%)",
+                commission_amount: "مبلغ العمولة (ليرة تركية)",
+                discount_returns: "الخصم / المرتجعات (ليرة تركية)",
+                net_sales: "صافي المبيعات (ليرة تركية)",
+                trendyol: "ترينديول",
+                yemeksepeti: "يمك سيبيتي",
+                in_store_sales: "المبيعات داخل المتجر",
+                total: "المجموع",
+                daily_expenses: "💸 المصاريف اليومية",
+                expense_category: "فئة المصروف",
+                amount: "المبلغ (ليرة تركية)",
+                notes: "ملاحظات",
+                food_ingredients: "الطعام والمكونات",
+                staff_salaries: "رواتب الموظفين",
+                utilities: "خدمات",
+                delivery_costs: "تكاليف التوصيل",
+                other_expenses: "مصاريف أخرى",
+                total_expenses: "إجمالي المصاريف",
+                daily_summary: "📈 ملخص يومي",
+                total_gross_sales: "إجمالي المبيعات:",
+                total_commission_paid: "إجمالي العمولة المدفوعة:",
+                total_net_sales: "إجمالي صافي المبيعات:",
+                net_profit: "صافي الربح:",
+                profit_margin: "هامش الربح:",
+                save_report: "💾 حفظ التقرير",
+                export_to_xlsx: "📊 تصدير إلى XLSX",
+                monthly_report: "📅 تقرير شهري",
+                clear_all: "🗑️ مسح الكل",
+                load_sample_data: "📋 تحميل بيانات نموذجية",
+                saved_reports: "📁 التقارير المحفوظة",
+                no_saved_reports: "لا توجد تقارير محفوظة حتى الآن.",
+                language: "اللغة:",
+                in_salon_sales: "مبيعات الصالون",
+                nakit: "نقيت",
+                cars_sales: "مبيعات السيارات",
+            }
+        };
+
+        function toggleLanguage() {
+            const language = document.getElementById('language').value;
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[language][key]) {
+                    element.textContent = translations[language][key];
+                }
+            });
+            document.documentElement.lang = language;
+            document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+        }
+
         // In-memory storage for reports
         let savedReports = [];
 
@@ -318,6 +452,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
             updateSavedReportsList();
+            toggleLanguage();
         });
 
         function calculateSales() {
@@ -348,11 +483,38 @@
             document.getElementById('store-commission').textContent = storeCommission.toFixed(2);
             document.getElementById('store-net').textContent = storeNet.toFixed(2);
 
+            // Salon calculations
+            const salonGross = parseFloat(document.getElementById('salon-gross').value) || 0;
+            const salonDiscount = parseFloat(document.getElementById('salon-discount').value) || 0;
+            const salonCommission = 0;
+            const salonNet = salonGross - salonDiscount;
+
+            document.getElementById('salon-commission').textContent = salonCommission.toFixed(2);
+            document.getElementById('salon-net').textContent = salonNet.toFixed(2);
+
+            // Nakit calculations
+            const nakitGross = parseFloat(document.getElementById('nakit-gross').value) || 0;
+            const nakitDiscount = parseFloat(document.getElementById('nakit-discount').value) || 0;
+            const nakitCommission = 0;
+            const nakitNet = nakitGross - nakitDiscount;
+
+            document.getElementById('nakit-commission').textContent = nakitCommission.toFixed(2);
+            document.getElementById('nakit-net').textContent = nakitNet.toFixed(2);
+
+            // Cars calculations
+            const carsGross = parseFloat(document.getElementById('cars-gross').value) || 0;
+            const carsDiscount = parseFloat(document.getElementById('cars-discount').value) || 0;
+            const carsCommission = 0;
+            const carsNet = carsGross - carsDiscount;
+
+            document.getElementById('cars-commission').textContent = carsCommission.toFixed(2);
+            document.getElementById('cars-net').textContent = carsNet.toFixed(2);
+
             // Totals
-            const totalGross = trendyolGross + yemeksepetiGross + storeGross;
-            const totalCommission = trendyolCommission + yemeksepetiCommission + storeCommission;
-            const totalDiscount = trendyolDiscount + yemeksepetiDiscount + storeDiscount;
-            const totalNet = trendyolNet + yemeksepetiNet + storeNet;
+            const totalGross = trendyolGross + yemeksepetiGross + storeGross + salonGross + nakitGross + carsGross;
+            const totalCommission = trendyolCommission + yemeksepetiCommission + storeCommission + salonCommission + nakitCommission + carsCommission;
+            const totalDiscount = trendyolDiscount + yemeksepetiDiscount + storeDiscount + salonDiscount + nakitDiscount + carsDiscount;
+            const totalNet = trendyolNet + yemeksepetiNet + storeNet + salonNet + nakitNet + carsNet;
 
             document.getElementById('total-gross').textContent = totalGross.toFixed(2);
             document.getElementById('total-commission').textContent = totalCommission.toFixed(2);
@@ -413,6 +575,21 @@
                         gross: document.getElementById('store-gross').value || '0',
                         discount: document.getElementById('store-discount').value || '0',
                         net: document.getElementById('store-net').textContent
+                    },
+                    salon: {
+                        gross: document.getElementById('salon-gross').value || '0',
+                        discount: document.getElementById('salon-discount').value || '0',
+                        net: document.getElementById('salon-net').textContent
+                    },
+                    nakit: {
+                        gross: document.getElementById('nakit-gross').value || '0',
+                        discount: document.getElementById('nakit-discount').value || '0',
+                        net: document.getElementById('nakit-net').textContent
+                    },
+                    cars: {
+                        gross: document.getElementById('cars-gross').value || '0',
+                        discount: document.getElementById('cars-discount').value || '0',
+                        net: document.getElementById('cars-net').textContent
                     }
                 },
                 expenses: {
@@ -451,52 +628,100 @@
             updateSavedReportsList();
         }
 
-        function exportToCSV() {
+        function exportToXLSX() {
             const date = document.getElementById('report-date').value;
-            const csvContent = generateCSV();
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `daily_report_${date}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const language = document.getElementById('language').value;
+            const t = translations[language];
+
+            const wb = XLSX.utils.book_new();
+
+            // Sales Data
+            const salesData = [
+                [t.platform, t.gross_sales, t.commission_rate, t.commission_amount, t.discount_returns, t.net_sales],
+                [t.trendyol, document.getElementById('trendyol-gross').value || '0', '36.6%', document.getElementById('trendyol-commission').textContent, document.getElementById('trendyol-discount').value || '0', document.getElementById('trendyol-net').textContent],
+                [t.yemeksepeti, document.getElementById('yemeksepeti-gross').value || '0', '38.4%', document.getElementById('yemeksepeti-commission').textContent, document.getElementById('yemeksepeti-discount').value || '0', document.getElementById('yemeksepeti-net').textContent],
+                [t.in_store_sales, document.getElementById('store-gross').value || '0', '0%', document.getElementById('store-commission').textContent, document.getElementById('store-discount').value || '0', document.getElementById('store-net').textContent],
+                [t.in_salon_sales, document.getElementById('salon-gross').value || '0', '0%', document.getElementById('salon-commission').textContent, document.getElementById('salon-discount').value || '0', document.getElementById('salon-net').textContent],
+                [t.nakit, document.getElementById('nakit-gross').value || '0', '0%', document.getElementById('nakit-commission').textContent, document.getElementById('nakit-discount').value || '0', document.getElementById('nakit-net').textContent],
+                [t.cars_sales, document.getElementById('cars-gross').value || '0', '0%', document.getElementById('cars-commission').textContent, document.getElementById('cars-discount').value || '0', document.getElementById('cars-net').textContent],
+                [t.total, document.getElementById('total-gross').textContent, '-', document.getElementById('total-commission').textContent, document.getElementById('total-discount').textContent, document.getElementById('total-net').textContent]
+            ];
+            const wsSales = XLSX.utils.aoa_to_sheet(salesData);
+            XLSX.utils.book_append_sheet(wb, wsSales, t.daily_sales_report);
+
+            // Expenses Data
+            const expensesData = [
+                [t.expense_category, t.amount, t.notes],
+                [t.food_ingredients, document.getElementById('food-expense').value || '0', document.getElementById('food-notes').value || ''],
+                [t.staff_salaries, document.getElementById('staff-expense').value || '0', document.getElementById('staff-notes').value || ''],
+                [t.utilities, document.getElementById('utilities-expense').value || '0', document.getElementById('utilities-notes').value || ''],
+                [t.delivery_costs, document.getElementById('delivery-expense').value || '0', document.getElementById('delivery-notes').value || ''],
+                [t.other_expenses, document.getElementById('other-expense').value || '0', document.getElementById('other-notes').value || ''],
+                [t.total_expenses, document.getElementById('total-expenses').textContent, '-']
+            ];
+            const wsExpenses = XLSX.utils.aoa_to_sheet(expensesData);
+            XLSX.utils.book_append_sheet(wb, wsExpenses, t.daily_expenses);
+
+            // Summary Data
+            const summaryData = [
+                [t.daily_summary, ''],
+                [t.total_gross_sales, document.getElementById('summary-gross').textContent],
+                [t.total_commission_paid, document.getElementById('summary-commission').textContent],
+                [t.total_net_sales, document.getElementById('summary-net').textContent],
+                [t.total_expenses, document.getElementById('summary-expenses').textContent],
+                [t.net_profit, document.getElementById('summary-profit').textContent],
+                [t.profit_margin, document.getElementById('summary-margin').textContent + '%']
+            ];
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, wsSummary, t.daily_summary);
+
+            // Export the workbook
+            XLSX.writeFile(wb, `daily_report_${date}.xlsx`);
             
             showNotification('Report exported successfully!', 'success');
         }
 
-        function generateCSV() {
-            const date = document.getElementById('report-date').value;
-            let csv = `Daily Restaurant Report - ${date}\n\n`;
-            
-            csv += `SALES REPORT\n`;
-            csv += `Platform,Gross Sales,Commission Rate,Commission Amount,Discounts,Net Sales\n`;
-            csv += `Trendyol,${document.getElementById('trendyol-gross').value || '0'},36.6%,${document.getElementById('trendyol-commission').textContent},${document.getElementById('trendyol-discount').value || '0'},${document.getElementById('trendyol-net').textContent}\n`;
-            csv += `Yemeksepeti,${document.getElementById('yemeksepeti-gross').value || '0'},40%,${document.getElementById('yemeksepeti-commission').textContent},${document.getElementById('yemeksepeti-discount').value || '0'},${document.getElementById('yemeksepeti-net').textContent}\n`;
-            csv += `In-Store,${document.getElementById('store-gross').value || '0'},0%,${document.getElementById('store-commission').textContent},${document.getElementById('store-discount').value || '0'},${document.getElementById('store-net').textContent}\n`;
-            csv += `TOTAL,${document.getElementById('total-gross').textContent},-,${document.getElementById('total-commission').textContent},${document.getElementById('total-discount').textContent},${document.getElementById('total-net').textContent}\n\n`;
-            
-            csv += `EXPENSES\n`;
-            csv += `Category,Amount,Notes\n`;
-            csv += `Food & Ingredients,${document.getElementById('food-expense').value || '0'},${document.getElementById('food-notes').value || ''}\n`;
-            csv += `Staff Salaries,${document.getElementById('staff-expense').value || '0'},${document.getElementById('staff-notes').value || ''}\n`;
-            csv += `Utilities,${document.getElementById('utilities-expense').value || '0'},${document.getElementById('utilities-notes').value || ''}\n`;
-            csv += `Delivery Costs,${document.getElementById('delivery-expense').value || '0'},${document.getElementById('delivery-notes').value || ''}\n`;
-            csv += `Other Expenses,${document.getElementById('other-expense').value || '0'},${document.getElementById('other-notes').value || ''}\n`;
-            csv += `TOTAL EXPENSES,${document.getElementById('total-expenses').textContent},-\n\n`;
-            
-            csv += `SUMMARY\n`;
-            csv += `Total Gross Sales,${document.getElementById('summary-gross').textContent}\n`;
-            csv += `Total Commission Paid,${document.getElementById('summary-commission').textContent}\n`;
-            csv += `Total Net Sales,${document.getElementById('summary-net').textContent}\n`;
-            csv += `Total Expenses,${document.getElementById('summary-expenses').textContent}\n`;
-            csv += `Net Profit,${document.getElementById('summary-profit').textContent}\n`;
-            csv += `Profit Margin,${document.getElementById('summary-margin').textContent}%\n`;
-            
-            return csv;
+        function generateMonthlyReport() {
+            const month = prompt("Enter the month for the report (e.g., YYYY-MM):");
+            if (!month) return;
+
+            const monthlyReports = savedReports.filter(report => report.date.startsWith(month));
+            if (monthlyReports.length === 0) {
+                showNotification('No reports found for the selected month.', 'error');
+                return;
+            }
+
+            const language = document.getElementById('language').value;
+            const t = translations[language];
+
+            let totalGross = 0;
+            let totalCommission = 0;
+            let totalNetSales = 0;
+            let totalExpenses = 0;
+
+            monthlyReports.forEach(report => {
+                totalGross += parseFloat(report.summary.totalGross);
+                totalNetSales += parseFloat(report.summary.totalNet);
+                totalExpenses += parseFloat(report.summary.totalExpenses);
+            });
+
+            const netProfit = totalNetSales - totalExpenses;
+            const profitMargin = totalNetSales > 0 ? (netProfit / totalNetSales * 100) : 0;
+
+            const wb = XLSX.utils.book_new();
+            const summaryData = [
+                [t.monthly_report, month],
+                [t.total_gross_sales, totalGross.toFixed(2)],
+                [t.total_net_sales, totalNetSales.toFixed(2)],
+                [t.total_expenses, totalExpenses.toFixed(2)],
+                [t.net_profit, netProfit.toFixed(2)],
+                [t.profit_margin, profitMargin.toFixed(1) + '%']
+            ];
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, wsSummary, t.monthly_report);
+
+            XLSX.writeFile(wb, `monthly_report_${month}.xlsx`);
+            showNotification('Monthly report generated successfully!', 'success');
         }
 
         function clearAll() {
@@ -580,6 +805,12 @@
             document.getElementById('yemeksepeti-discount').value = report.sales.yemeksepeti.discount;
             document.getElementById('store-gross').value = report.sales.store.gross;
             document.getElementById('store-discount').value = report.sales.store.discount;
+            document.getElementById('salon-gross').value = report.sales.salon.gross;
+            document.getElementById('salon-discount').value = report.sales.salon.discount;
+            document.getElementById('nakit-gross').value = report.sales.nakit.gross;
+            document.getElementById('nakit-discount').value = report.sales.nakit.discount;
+            document.getElementById('cars-gross').value = report.sales.cars.gross;
+            document.getElementById('cars-discount').value = report.sales.cars.discount;
             
             // Load expenses data
             document.getElementById('food-expense').value = report.expenses.food;
