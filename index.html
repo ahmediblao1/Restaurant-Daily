@@ -305,7 +305,7 @@
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="cashInStore">Cash in Store:</strong> <input type="number" class="input-field" id="cash-in-store"></p>
-                    <p><strong data-translate="cashWithAbdelhamid">Cash with Abdelhamid:</strong> <input type="number" class="input-field" id="cash-with-abdelhamid"></p>
+                    <p><strong data-translate="cashWithAbdulRahim">Cash with AbdulRahim:</strong> <input type="number" class="input-field" id="cash-with-AbdulRahim"></p>
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="complimentary">Complimentary:</strong> <span id="summary-complimentary">0.00</span> TRY</p>
@@ -442,7 +442,7 @@
                 addItem: "+ Add Item",
                 inventoryValue: "Inventory Value",
                 cashInStore: "Cash in Store",
-                cashWithAbdelhamid: "Cash with Abdelhamid",
+                cashWithAbdulRahim: "Cash with AbdulRahim",
                 complimentary: "Complimentary",
                 confirmClear: "Are you sure you want to clear all data?",
                 confirmDelete: "Are you sure you want to delete this report?",
@@ -507,7 +507,7 @@
                 addItem: "+ إضافة عنصر",
                 inventoryValue: "قيمة المخزون",
                 cashInStore: "النقد في المتجر",
-                cashWithAbdelhamid: "النقد مع عبد الحميد",
+                cashWithAbdulRahim: "النقد مع عبد الرحيم",
                 complimentary: "أكرام",
                 confirmClear: "هل أنت متأكد أنك تريد مسح جميع البيانات؟",
                 confirmDelete: "هل أنت متأكد أنك تريد حذف هذا التقرير؟",
@@ -705,7 +705,7 @@
                     netProfit: document.getElementById('summary-profit').textContent,
                     profitMargin: document.getElementById('summary-margin').textContent,
                     cashInStore: document.getElementById('cash-in-store').value,
-                    cashWithAbdelhamid: document.getElementById('cash-with-abdelhamid').value
+                    cashWithAbdulRahim: document.getElementById('cash-with-AbdulRahim').value
                 }
             };
             
@@ -764,7 +764,7 @@
             data.push([t.netProfit, document.getElementById('summary-profit').textContent]);
             data.push([t.profitMargin, document.getElementById('summary-margin').textContent + '%']);
             data.push([t.cashInStore, document.getElementById('cash-in-store').value]);
-            data.push([t.cashWithAbdelhamid, document.getElementById('cash-with-abdelhamid').value]);
+            data.push([t.cashWithAbdulRahim, document.getElementById('cash-with-AbdulRahim').value]);
             data.push([t.complimentary, document.getElementById('complimentary').value, document.getElementById('complimentary-notes').value]);
 
             const ws = XLSX.utils.aoa_to_sheet(data);
@@ -944,8 +944,8 @@
             if(report.summary.cashInStore) {
                 document.getElementById('cash-in-store').value = report.summary.cashInStore;
             }
-            if(report.summary.cashWithAbdelhamid) {
-                document.getElementById('cash-with-abdelhamid').value = report.summary.cashWithAbdelhamid;
+            if(report.summary.cashWithAbdulRahim) {
+                document.getElementById('cash-with-AbdulRahim').value = report.summary.cashWithAbdulRahim;
             }
             
             // Recalculate everything
