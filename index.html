@@ -202,6 +202,14 @@
         <!-- Sales Section -->
         <div class="section">
             <h2 data-translate="dailySales">💰 Daily Sales Report</h2>
+            <div style="margin-bottom: 15px;">
+                <label for="trendyol-file">Trendyol:</label>
+                <input type="file" id="trendyol-file" onchange="handleFileUpload(event, 'trendyol')">
+                <label for="yemeksepeti-file">Yemeksepeti:</label>
+                <input type="file" id="yemeksepeti-file" onchange="handleFileUpload(event, 'yemeksepeti')">
+                <label for="in-store-file">In-Store:</label>
+                <input type="file" id="in-store-file" onchange="handleFileUpload(event, 'in-store')">
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -291,7 +299,7 @@
 
         <!-- Daily Summary -->
         <div class="summary" id="summary-section">
-            <h3 data-translate="dailySummary">📈 Daily Summary</h3>
+            <h3 data-translate="dailySummary">📈 Daily Summary <span id="summary-date" style="font-size: 16px; font-weight: normal;"></span></h3>
             <div class="summary-grid">
                 <div class="summary-item">
                     <p><strong data-translate="totalGrossSales">Total Gross Sales:</strong> <span id="summary-gross">0.00</span> TRY</p>
@@ -305,7 +313,7 @@
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="cashInStore">Cash in Store:</strong> <input type="number" class="input-field" id="cash-in-store"></p>
-                    <p><strong data-translate="cashWithAbdulRahim">Cash with AbdulRahim:</strong> <input type="number" class="input-field" id="cash-with-AbdulRahim"></p>
+                    <p><strong data-translate="cashWithAbdelhamid">Cash with Abdelhamid:</strong> <input type="number" class="input-field" id="cash-with-abdelhamid"></p>
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="complimentary">Complimentary:</strong> <span id="summary-complimentary">0.00</span> TRY</p>
@@ -368,6 +376,7 @@
             </table>
             <button class="btn" onclick="addInventoryItem()" data-translate="addItem">+ Add Item</button>
         </div>
+
     </div>
 
     <!-- Notification -->
@@ -442,8 +451,10 @@
                 addItem: "+ Add Item",
                 inventoryValue: "Inventory Value",
                 cashInStore: "Cash in Store",
-                cashWithAbdulRahim: "Cash with AbdulRahim",
+                cashWithAbdelhamid: "Cash with Abdelhamid",
                 complimentary: "Complimentary",
+                productSales: "📈 Product Sales",
+                productName: "Product Name",
                 confirmClear: "Are you sure you want to clear all data?",
                 confirmDelete: "Are you sure you want to delete this report?",
                 notifications: {
@@ -507,8 +518,10 @@
                 addItem: "+ إضافة عنصر",
                 inventoryValue: "قيمة المخزون",
                 cashInStore: "النقد في المتجر",
-                cashWithAbdulRahim: "النقد مع عبد الرحيم",
-                complimentary: "أكرام",
+                cashWithAbdelhamid: "النقد مع عبد الحميد",
+                complimentary: "مجاني",
+                productSales: "📈 مبيعات المنتجات",
+                productName: "اسم المنتج",
                 confirmClear: "هل أنت متأكد أنك تريد مسح جميع البيانات؟",
                 confirmDelete: "هل أنت متأكد أنك تريد حذف هذا التقرير؟",
                 notifications: {
@@ -661,6 +674,7 @@
             document.getElementById('summary-profit').textContent = netProfit.toFixed(2);
             document.getElementById('summary-margin').textContent = profitMargin.toFixed(1);
             document.getElementById('summary-complimentary').textContent = complimentary.toFixed(2);
+            document.getElementById('summary-date').textContent = document.getElementById('report-date').value;
         }
 
         function saveReport() {
@@ -705,7 +719,7 @@
                     netProfit: document.getElementById('summary-profit').textContent,
                     profitMargin: document.getElementById('summary-margin').textContent,
                     cashInStore: document.getElementById('cash-in-store').value,
-                    cashWithAbdulRahim: document.getElementById('cash-with-AbdulRahim').value
+                    cashWithAbdelhamid: document.getElementById('cash-with-abdelhamid').value
                 }
             };
             
@@ -764,7 +778,7 @@
             data.push([t.netProfit, document.getElementById('summary-profit').textContent]);
             data.push([t.profitMargin, document.getElementById('summary-margin').textContent + '%']);
             data.push([t.cashInStore, document.getElementById('cash-in-store').value]);
-            data.push([t.cashWithAbdulRahim, document.getElementById('cash-with-AbdulRahim').value]);
+            data.push([t.cashWithAbdelhamid, document.getElementById('cash-with-abdelhamid').value]);
             data.push([t.complimentary, document.getElementById('complimentary').value, document.getElementById('complimentary-notes').value]);
 
             const ws = XLSX.utils.aoa_to_sheet(data);
@@ -944,8 +958,8 @@
             if(report.summary.cashInStore) {
                 document.getElementById('cash-in-store').value = report.summary.cashInStore;
             }
-            if(report.summary.cashWithAbdulRahim) {
-                document.getElementById('cash-with-AbdulRahim').value = report.summary.cashWithAbdulRahim;
+            if(report.summary.cashWithAbdelhamid) {
+                document.getElementById('cash-with-abdelhamid').value = report.summary.cashWithAbdelhamid;
             }
             
             // Recalculate everything
@@ -992,6 +1006,7 @@
             let totalNetSales = 0;
             let totalExpenses = 0;
             let totalProfit = 0;
+            let productSales = {};
 
             reportsForMonth.forEach(report => {
                 totalGross += parseFloat(report.summary.totalGross);
@@ -999,6 +1014,20 @@
                 totalNetSales += parseFloat(report.summary.totalNet);
                 totalExpenses += parseFloat(report.summary.totalExpenses);
                 totalProfit += parseFloat(report.summary.netProfit);
+
+                if (report.productSales) {
+                    report.productSales.forEach(item => {
+                        if (productSales[item.name]) {
+                            productSales[item.name].quantity += parseInt(item.quantity);
+                            productSales[item.name].total += parseFloat(item.total);
+                        } else {
+                            productSales[item.name] = {
+                                quantity: parseInt(item.quantity),
+                                total: parseFloat(item.total)
+                            };
+                        }
+                    });
+                }
             });
 
             const lang = document.getElementById('language-selector').value;
@@ -1023,6 +1052,19 @@
                 <tfoot id="monthly-report-inventory">
                 </tfoot>
             `;
+
+            const productSalesTbody = document.getElementById('product-sales-tbody');
+            productSalesTbody.innerHTML = '';
+            for (const name in productSales) {
+                const item = productSales[name];
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.total.toFixed(2)}</td>
+                `;
+                productSalesTbody.appendChild(newRow);
+            }
 
             document.getElementById('monthly-report-container').style.display = 'block';
             calculateInventoryCost(year, month);
@@ -1113,6 +1155,132 @@
                     pdf.save('daily_summary.pdf');
                 }
             });
+        }
+
+        function handleFileUpload(event, platform) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+
+                if (platform === 'trendyol') {
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    let totalTutar = 0;
+                    let totalKomisyon = 0;
+                    let totalIndirim = 0;
+
+                    json.forEach(row => {
+                        totalTutar += parseFloat(row['Tutar']) || 0;
+                        totalKomisyon += parseFloat(row['Komisyon']) || 0;
+                        totalIndirim += parseFloat(row['İndirim']) || 0;
+                    });
+
+                    document.getElementById('trendyol-gross').value = totalTutar.toFixed(2);
+                    document.getElementById('trendyol-commission').textContent = totalKomisyon.toFixed(2);
+                    document.getElementById('trendyol-discount').value = totalIndirim.toFixed(2);
+                } else if (platform === 'yemeksepeti') {
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    let subtotalCol = -1;
+                    let commissionCol = -1;
+                    let discountCol = -1;
+
+                    // Find header row and column indices
+                    for (let i = 0; i < json.length; i++) {
+                        const row = json[i];
+                        if (row.includes('Subtotal') && row.includes('Commission') && row.includes('Discount Funded by Vendor')) {
+                            subtotalCol = row.indexOf('Subtotal');
+                            commissionCol = row.indexOf('Commission');
+                            discountCol = row.indexOf('Discount Funded by Vendor');
+                            break;
+                        }
+                    }
+
+                    if (subtotalCol !== -1) {
+                        let totalSubtotal = 0;
+                        let totalCommission = 0;
+                        let totalDiscount = 0;
+                        
+                        for (let i = 1; i < json.length; i++) {
+                            const row = json[i];
+                            if (row[subtotalCol] && !isNaN(parseFloat(row[subtotalCol]))) {
+                                totalSubtotal += parseFloat(row[subtotalCol]);
+                                totalCommission += parseFloat(row[commissionCol]) || 0;
+                                totalDiscount += parseFloat(row[discountCol]) || 0;
+                            }
+                        }
+                        
+                        document.getElementById('yemeksepeti-gross').value = totalSubtotal.toFixed(2);
+                        document.getElementById('yemeksepeti-commission').textContent = totalCommission.toFixed(2);
+                        document.getElementById('yemeksepeti-discount').value = totalDiscount.toFixed(2);
+                    } else {
+                        alert('Could not find the required columns in the Yemeksepeti file.');
+                    }
+                } else if (platform === 'in-store') {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const text = e.target.result;
+                        const lines = text.split('\n');
+                        let nakit = '0';
+                        let kKarti = '0';
+                        let productSales = [];
+                        let isProductSection = false;
+
+                        lines.forEach(line => {
+                            console.log("Parsing line: ", line);
+                            if (line.includes('Ürün - Grup Satış')) {
+                                isProductSection = true;
+                            } else if (isProductSection && line.includes('-----------------------------------')) {
+                                // ignore separator lines
+                            } else if (isProductSection && line.trim() !== '') {
+                                const parts = line.split('\t\t');
+                                if (parts.length === 3) {
+                                    productSales.push({
+                                        name: parts[0].trim(),
+                                        quantity: parts[1].trim(),
+                                        total: parts[2].trim()
+                                    });
+                                }
+                            } else if (line.startsWith('Nakit')) {
+                                nakit = line.split(':')[1].trim().split(' ')[0].replace(/\./g, '').replace(',', '.');
+                                console.log("Nakit found: ", nakit);
+                            } else if (line.startsWith('K. Kartı')) {
+                                kKarti = line.split(':')[1].trim().split(' ')[0].replace(/\./g, '').replace(',', '.');
+                                console.log("K. Karti found: ", kKarti);
+                            }
+                        });
+
+                        document.getElementById('store-cash-gross').value = parseFloat(nakit).toFixed(2);
+                        document.getElementById('store-card-gross').value = parseFloat(kKarti).toFixed(2);
+
+                        const productSalesTbody = document.getElementById('product-sales-tbody');
+                        productSalesTbody.innerHTML = '';
+                        productSales.forEach(item => {
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td>${item.name}</td>
+                                <td>${item.quantity}</td>
+                                <td>${item.total}</td>
+                            `;
+                            productSalesTbody.appendChild(newRow);
+                        });
+
+                        calculateSales();
+                    };
+                    reader.readAsText(file);
+                }
+
+                calculateSales();
+            };
+
+            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
