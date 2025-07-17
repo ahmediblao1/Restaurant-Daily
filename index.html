@@ -99,6 +99,12 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
         }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
         .summary .summary-item {
             background: rgba(255,255,255,0.1);
             padding: 20px;
@@ -184,13 +190,58 @@
         .report-item button:hover {
             background-color: #c0392b;
         }
+
+        /* Style the tab */
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 data-translate="title">📊 Restaurant Daily Accounting System</h1>
         
-        <div class="date-selector">
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'daily-entry')" data-translate="dailyEntry">Daily Entry</button>
+            <button class="tablinks" onclick="openTab(event, 'expenses')" data-translate="expenses">Expenses</button>
+            <button class="tablinks" onclick="openTab(event, 'reports')" data-translate="reports">Reports</button>
+            <button class="tablinks" onclick="openTab(event, 'history')" data-translate="history">History</button>
+        </div>
+
+        <div id="daily-entry" class="tabcontent">
+            <div class="date-selector">
             <label for="report-date" data-translate="reportDate">Report Date: </label>
             <input type="date" id="report-date" value="">
             <select id="language-selector" onchange="changeLanguage()" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px; margin-left: 10px;">
@@ -376,6 +427,25 @@
             </table>
             <button class="btn" onclick="addInventoryItem()" data-translate="addItem">+ Add Item</button>
         </div>
+        </div>
+
+        <div id="reports" class="tabcontent">
+            <h2 data-translate="reports">Reports</h2>
+            <div id="reports-content">
+                </div>
+        </div>
+
+        <div id="history" class="tabcontent">
+            <h2 data-translate="history">History</h2>
+            <div id="history-content">
+                </div>
+        </div>
+
+        <div id="expenses" class="tabcontent">
+            <h2 data-translate="expenses">Expenses</h2>
+            <div id="expenses-content">
+                </div>
+        </div>
 
     </div>
 
@@ -385,6 +455,7 @@
     <script>
         // In-memory storage for reports
         let savedReports = [];
+        let expenses = [];
 
         // Set today's date on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -392,6 +463,10 @@
             const storedReports = localStorage.getItem('savedReports');
             if (storedReports) {
                 savedReports = JSON.parse(storedReports);
+            }
+            const storedExpenses = localStorage.getItem('expenses');
+            if (storedExpenses) {
+                expenses = JSON.parse(storedExpenses);
             }
             addExpenseRow(); // Add an initial expense row
             updateSavedReportsList();
@@ -404,6 +479,7 @@
                 title: "📊 Restaurant Daily Accounting System",
                 reportDate: "Report Date:",
                 dailySales: "💰 Daily Sales Report",
+                expenses: "Expenses",
                 platform: "Platform",
                 grossSales: "Gross Sales (TRY)",
                 commissionRate: "Commission Rate (%)",
@@ -455,6 +531,9 @@
                 complimentary: "Complimentary",
                 productSales: "📈 Product Sales",
                 productName: "Product Name",
+                dailyEntry: "Daily Entry",
+                reports: "Reports",
+                history: "History",
                 confirmClear: "Are you sure you want to clear all data?",
                 confirmDelete: "Are you sure you want to delete this report?",
                 notifications: {
@@ -471,6 +550,7 @@
                 title: "📊 نظام المحاسبة اليومية للمطاعم",
                 reportDate: "تاريخ التقرير:",
                 dailySales: "💰 تقرير المبيعات اليومي",
+                expenses: "المصاريف",
                 platform: "المنصة",
                 grossSales: "إجمالي المبيعات (ليرة تركية)",
                 commissionRate: "نسبة العمولة (%)",
@@ -522,6 +602,9 @@
                 complimentary: "مجاني",
                 productSales: "📈 مبيعات المنتجات",
                 productName: "اسم المنتج",
+                dailyEntry: "إدخال يومي",
+                reports: "تقارير",
+                history: "سجل",
                 confirmClear: "هل أنت متأكد أنك تريد مسح جميع البيانات؟",
                 confirmDelete: "هل أنت متأكد أنك تريد حذف هذا التقرير؟",
                 notifications: {
@@ -1157,6 +1240,474 @@
             });
         }
 
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+
+            if (tabName === 'reports') {
+                generateReportsTab();
+            } else if (tabName === 'history') {
+                generateHistoryTab();
+            } else if (tabName === 'expenses') {
+                generateExpensesTab();
+            }
+        }
+
+        function generateReportsTab() {
+            const reportsContent = document.getElementById('reports-content');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            let reportsHTML = `
+                <div class="section">
+                    <h2 data-translate="monthlyReport">${t.monthlyReport}</h2>
+                    <div style="margin-bottom: 15px;">
+                        <label for="report-type-selector">${"Report Type:"}</label>
+                        <select id="report-type-selector" onchange="toggleReportInputs()" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="monthly">Monthly</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div id="report-inputs" style="margin-bottom: 15px;">
+                        </div>
+                    <button class="btn" onclick="generateReportFromTab()" data-translate="generateReport">${t.generateReport}</button>
+                    <div id="reports-monthly-report-container" style="display: none;">
+                        <h3 id="reports-monthly-report-title"></h3>
+                        <table id="reports-monthly-report-table">
+                        </table>
+                    </div>
+                </div>
+            `;
+            reportsContent.innerHTML = reportsHTML;
+            toggleReportInputs();
+        }
+
+        function toggleReportInputs() {
+            const reportType = document.getElementById('report-type-selector').value;
+            const inputsContainer = document.getElementById('report-inputs');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            let inputsHTML = '';
+            if (reportType === 'monthly') {
+                inputsHTML = `<label for="reports-month-selector" data-translate="selectMonth">${t.selectMonth}</label>
+                              <input type="month" id="reports-month-selector" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px;">`;
+            } else if (reportType === 'weekly') {
+                inputsHTML = `<label for="reports-week-selector">Select Week:</label>
+                              <input type="week" id="reports-week-selector" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px;">`;
+            } else if (reportType === 'custom') {
+                inputsHTML = `<label for="reports-start-date">Start Date:</label>
+                              <input type="date" id="reports-start-date" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px;">
+                              <label for="reports-end-date">End Date:</label>
+                              <input type="date" id="reports-end-date" style="padding: 8px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px;">`;
+            }
+            inputsContainer.innerHTML = inputsHTML;
+        }
+
+        function generateReportFromTab() {
+            const reportType = document.getElementById('report-type-selector').value;
+            let startDate, endDate;
+            let reportTitle = '';
+
+            if (reportType === 'monthly') {
+                const monthSelector = document.getElementById('reports-month-selector');
+                const selectedMonth = monthSelector.value;
+                if (!selectedMonth) {
+                    alert('Please select a month.');
+                    return;
+                }
+                const [year, month] = selectedMonth.split('-');
+                startDate = new Date(year, month - 1, 1);
+                endDate = new Date(year, month, 0);
+                reportTitle = `Report for ${selectedMonth}`;
+
+            } else if (reportType === 'weekly') {
+                const weekSelector = document.getElementById('reports-week-selector');
+                const selectedWeek = weekSelector.value;
+                if (!selectedWeek) {
+                    alert('Please select a week.');
+                    return;
+                }
+                const [year, week] = selectedWeek.split('-W');
+                startDate = new Date(year, 0, (week - 1) * 7 + 1);
+                endDate = new Date(year, 0, (week - 1) * 7 + 7);
+                reportTitle = `Report for week ${week} of ${year}`;
+
+            } else if (reportType === 'custom') {
+                const startDateSelector = document.getElementById('reports-start-date');
+                const endDateSelector = document.getElementById('reports-end-date');
+                startDate = new Date(startDateSelector.value);
+                endDate = new Date(endDateSelector.value);
+
+                if (!startDateSelector.value || !endDateSelector.value) {
+                    alert('Please select a start and end date.');
+                    return;
+                }
+                reportTitle = `Report from ${startDateSelector.value} to ${endDateSelector.value}`;
+            }
+
+            const reportsToProcess = savedReports.filter(report => {
+                const reportDate = new Date(report.date);
+                return reportDate >= startDate && reportDate <= endDate;
+            });
+
+            const expensesToProcess = expenses.filter(expense => {
+                const expenseDate = new Date(expense.date);
+                return expenseDate >= startDate && expenseDate <= endDate;
+            });
+
+            if (reportsToProcess.length === 0 && expensesToProcess.length === 0) {
+                alert('No data found for the selected period.');
+                return;
+            }
+
+            let totalGross = 0;
+            let totalCommission = 0;
+            let totalNetSales = 0;
+            let totalExpenses = 0;
+            let totalProfit = 0;
+
+            reportsToProcess.forEach(report => {
+                totalGross += parseFloat(report.summary.totalGross);
+                totalCommission += parseFloat(report.sales.trendyol.commission) + parseFloat(report.sales.yemeksepeti.commission);
+                totalNetSales += parseFloat(report.summary.totalNet);
+            });
+
+            expensesToProcess.forEach(expense => {
+                totalExpenses += parseFloat(expense.amount);
+            });
+
+            totalProfit = totalNetSales - totalExpenses;
+
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+            
+            document.getElementById('reports-monthly-report-title').textContent = reportTitle;
+            const table = document.getElementById('reports-monthly-report-table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>${t.dailySummary}</th>
+                        <th>${t.amount}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>${t.totalGrossSales}</td><td>${totalGross.toFixed(2)}</td></tr>
+                    <tr><td>${t.totalCommissionPaid}</td><td>${totalCommission.toFixed(2)}</td></tr>
+                    <tr><td>${t.totalNetSales}</td><td>${totalNetSales.toFixed(2)}</td></tr>
+                    <tr><td>${t.totalExpensesLabel}</td><td>${totalExpenses.toFixed(2)}</td></tr>
+                    <tr><td>${t.netProfit}</td><td>${totalProfit.toFixed(2)}</td></tr>
+                </tbody>
+            `;
+
+            document.getElementById('reports-monthly-report-container').style.display = 'block';
+        }
+
+        function generateExpensesTab() {
+            const expensesContent = document.getElementById('expenses-content');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            let expensesHTML = `
+                <div class="section">
+                    <h2>Upload Bank Statement</h2>
+                    <input type="file" id="bank-statement-file" onchange="handleBankStatementUpload(event)">
+                </div>
+                <div class="section">
+                    <h2>Add New Expense</h2>
+                    <form id="expense-form" onsubmit="addExpense(event)">
+                        <div class="form-grid">
+                            <div>
+                                <label for="expense-description">Description</label>
+                                <input type="text" id="expense-description" required>
+                            </div>
+                            <div>
+                                <label for="expense-amount">Amount</label>
+                                <input type="number" id="expense-amount" required>
+                            </div>
+                            <div>
+                                <label for="expense-date">Date</label>
+                                <input type="date" id="expense-date" required>
+                            </div>
+                            <div>
+                                <label for="expense-category">Category</label>
+                                <select id="expense-category" required>
+                                    <option value="rent">Rent</option>
+                                    <option value="utilities">Utilities</option>
+                                    <option value="ingredients">Ingredients</option>
+                                    <option value="salaries">Salaries</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="expense-source">Payment Source</label>
+                                <select id="expense-source" required>
+                                    <option value="cash">Cash</option>
+                                    <option value="bank">Bank</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="expense-frequency">Frequency</label>
+                                <select id="expense-frequency" required>
+                                    <option value="one-time">One-time</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Add Expense</button>
+                    </form>
+                </div>
+                <div class="section">
+                    <h2>All Expenses</h2>
+                    <div id="expenses-table-container"></div>
+                </div>
+            `;
+            expensesContent.innerHTML = expensesHTML;
+            renderExpensesTable();
+        }
+
+        function addExpense(event) {
+            event.preventDefault();
+            const newExpense = {
+                id: Date.now(),
+                description: document.getElementById('expense-description').value,
+                amount: document.getElementById('expense-amount').value,
+                date: document.getElementById('expense-date').value,
+                category: document.getElementById('expense-category').value,
+                source: document.getElementById('expense-source').value,
+                frequency: document.getElementById('expense-frequency').value,
+            };
+            expenses.push(newExpense);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            document.getElementById('expense-form').reset();
+            renderExpensesTable();
+            showNotification('Expense added successfully!', 'success');
+        }
+
+        function renderExpensesTable() {
+            const tableContainer = document.getElementById('expenses-table-container');
+            if (!tableContainer) return;
+
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            let tableHTML = `
+                <input type="text" id="expense-search" placeholder="Search..." onkeyup="filterExpenses()" style="width: 100%; padding: 10px; margin-bottom: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortExpenses('description')">Description</th>
+                            <th onclick="sortExpenses('amount')">Amount</th>
+                            <th onclick="sortExpenses('date')">Date</th>
+                            <th onclick="sortExpenses('category')">Category</th>
+                            <th onclick="sortExpenses('source')">Source</th>
+                            <th onclick="sortExpenses('frequency')">Frequency</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${expenses.map(expense => `
+                            <tr>
+                                <td>${expense.description}</td>
+                                <td>${expense.amount}</td>
+                                <td>${expense.date}</td>
+                                <td>
+                                    <select class="input-field" onchange="updateExpenseCategory(${expense.id}, this.value)">
+                                        <option value="rent" ${expense.category === 'rent' ? 'selected' : ''}>Rent</option>
+                                        <option value="utilities" ${expense.category === 'utilities' ? 'selected' : ''}>Utilities</option>
+                                        <option value="ingredients" ${expense.category === 'ingredients' ? 'selected' : ''}>Ingredients</option>
+                                        <option value="salaries" ${expense.category === 'salaries' ? 'selected' : ''}>Salaries</option>
+                                        <option value="sales" ${expense.category === 'sales' ? 'selected' : ''}>Sales</option>
+                                        <option value="other" ${expense.category === 'other' ? 'selected' : ''}>Other</option>
+                                        <option value="uncategorized" ${expense.category === 'uncategorized' ? 'selected' : ''}>Uncategorized</option>
+                                    </select>
+                                </td>
+                                <td>${expense.source}</td>
+                                <td>${expense.frequency}</td>
+                                <td><button class="btn" onclick="deleteExpense(${expense.id})">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(expense => expense.id !== id);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            renderExpensesTable();
+            showNotification('Expense deleted!', 'success');
+        }
+
+        function updateExpenseCategory(id, category) {
+            const expense = expenses.find(expense => expense.id === id);
+            if (expense) {
+                expense.category = category;
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                showNotification('Category updated!', 'success');
+            }
+        }
+
+        let sortDirection = {};
+
+        function sortExpenses(key) {
+            sortDirection[key] = sortDirection[key] === 'asc' ? 'desc' : 'asc';
+            expenses.sort((a, b) => {
+                if (a[key] < b[key]) return sortDirection[key] === 'asc' ? -1 : 1;
+                if (a[key] > b[key]) return sortDirection[key] === 'asc' ? 1 : -1;
+                return 0;
+            });
+            renderExpensesTable();
+        }
+
+        function filterExpenses() {
+            const filter = document.getElementById('expense-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#expenses-table-container tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function handleBankStatementUpload(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                // Find the starting row of the transactions
+                let startRow = -1;
+                for (let i = 0; i < json.length; i++) {
+                    if (json[i][0] === 'HESAP NO') {
+                        startRow = i + 1;
+                        break;
+                    }
+                }
+
+                if (startRow === -1) {
+                    alert('Could not find the start of the transaction data.');
+                    return;
+                }
+
+                for (let i = startRow; i < json.length; i++) {
+                    const row = json[i];
+                    const description = row[5] || '';
+                    const amount = parseFloat(row[6]);
+                    
+                    if (description && !isNaN(amount)) {
+                        const newExpense = {
+                            id: Date.now() + i,
+                            description: description,
+                            amount: amount,
+                            date: row[2],
+                            category: categorizeExpense(description),
+                            source: 'bank',
+                            frequency: 'one-time',
+                        };
+                        expenses.push(newExpense);
+                    }
+                }
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                renderExpensesTable();
+                showNotification('Bank statement uploaded and processed!', 'success');
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function categorizeExpense(description) {
+            const lowerCaseDescription = description.toLowerCase();
+            if (lowerCaseDescription.includes('rent')) {
+                return 'rent';
+            } else if (lowerCaseDescription.includes('salary')) {
+                return 'salaries';
+            } else if (lowerCaseDescription.includes('yemeksepeti') || lowerCaseDescription.includes('trendyol')) {
+                return 'sales';
+            } else {
+                return 'uncategorized';
+            }
+        }
+
+        function generateHistoryTab() {
+            const historyContent = document.getElementById('history-content');
+            const lang = document.getElementById('language-selector').value;
+            const t = translations[lang];
+
+            if (savedReports.length === 0) {
+                historyContent.innerHTML = `<p>${t.noSavedReports}</p>`;
+                return;
+            }
+
+            let historyHTML = `
+                <div class="section">
+                    <input type="text" id="history-search" placeholder="Search by date..." onkeyup="filterHistory()" style="width: 100%; padding: 10px; margin-bottom: 20px;">
+                    <table id="history-table">
+                        <thead>
+                            <tr>
+                                <th>${t.reportDate}</th>
+                                <th>${t.totalNetSales}</th>
+                                <th>${t.totalExpensesLabel}</th>
+                                <th>${t.netProfit}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${savedReports.map((report, index) => `
+                                <tr>
+                                    <td>${report.date}</td>
+                                    <td>${report.summary.totalNet}</td>
+                                    <td>${report.summary.totalExpenses}</td>
+                                    <td>${report.summary.netProfit}</td>
+                                    <td>
+                                        <button class="btn" onclick="loadReport(${index})">Load</button>
+                                        <button class="btn" onclick="deleteReport(${index})">Delete</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            historyContent.innerHTML = historyHTML;
+        }
+
+        function filterHistory() {
+            const input = document.getElementById('history-search');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('history-table');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td')[0];
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+
         function handleFileUpload(event, platform) {
             const file = event.target.files[0];
             const reader = new FileReader();
@@ -1230,25 +1781,10 @@
                         const lines = text.split('\n');
                         let nakit = '0';
                         let kKarti = '0';
-                        let productSales = [];
-                        let isProductSection = false;
 
                         lines.forEach(line => {
                             console.log("Parsing line: ", line);
-                            if (line.includes('Ürün - Grup Satış')) {
-                                isProductSection = true;
-                            } else if (isProductSection && line.includes('-----------------------------------')) {
-                                // ignore separator lines
-                            } else if (isProductSection && line.trim() !== '') {
-                                const parts = line.split('\t\t');
-                                if (parts.length === 3) {
-                                    productSales.push({
-                                        name: parts[0].trim(),
-                                        quantity: parts[1].trim(),
-                                        total: parts[2].trim()
-                                    });
-                                }
-                            } else if (line.startsWith('Nakit')) {
+                            if (line.startsWith('Nakit')) {
                                 nakit = line.split(':')[1].trim().split(' ')[0].replace(/\./g, '').replace(',', '.');
                                 console.log("Nakit found: ", nakit);
                             } else if (line.startsWith('K. Kartı')) {
@@ -1259,19 +1795,6 @@
 
                         document.getElementById('store-cash-gross').value = parseFloat(nakit).toFixed(2);
                         document.getElementById('store-card-gross').value = parseFloat(kKarti).toFixed(2);
-
-                        const productSalesTbody = document.getElementById('product-sales-tbody');
-                        productSalesTbody.innerHTML = '';
-                        productSales.forEach(item => {
-                            const newRow = document.createElement('tr');
-                            newRow.innerHTML = `
-                                <td>${item.name}</td>
-                                <td>${item.quantity}</td>
-                                <td>${item.total}</td>
-                            `;
-                            productSalesTbody.appendChild(newRow);
-                        });
-
                         calculateSales();
                     };
                     reader.readAsText(file);
