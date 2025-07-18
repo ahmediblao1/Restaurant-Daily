@@ -611,7 +611,7 @@
                 inventoryValue: "قيمة المخزون",
                 cashInStore: "النقد في المتجر",
                 cashWithAbdelhamid: "النقد مع عبد الحميد",
-                complimentary: "اكرام",
+                complimentary: "مجاني",
                 productSales: "📈 مبيعات المنتجات",
                 productName: "اسم المنتج",
                 dailyEntry: "إدخال يومي",
@@ -1331,7 +1331,7 @@
         function exportReportFromTab() {
             const reportTitle = document.getElementById('reports-monthly-report-title').textContent;
             const table = document.getElementById('reports-monthly-report-table');
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Report"});
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Summary"});
             XLSX.writeFile(wb, `${reportTitle}.xlsx`);
         }
 
@@ -1392,30 +1392,40 @@
                 return;
             }
 
-            let totalGross = 0;
-            let totalCommission = 0;
-            let totalNetSales = 0;
+            let income = {
+                trendyol: 0,
+                yemeksepeti: 0,
+                storeCash: 0,
+                storeCard: 0,
+                total: 0
+            };
+            let expensesByCategory = {};
             let totalExpenses = 0;
-            let totalProfit = 0;
-            let expenseBreakdown = {};
 
             reportsToProcess.forEach(report => {
-                totalGross += parseFloat(report.summary.totalGross);
-                totalCommission += parseFloat(report.sales.trendyol.commission) + parseFloat(report.sales.yemeksepeti.commission);
-                totalNetSales += parseFloat(report.summary.totalNet);
+                income.trendyol += parseFloat(report.sales.trendyol.net) || 0;
+                income.yemeksepeti += parseFloat(report.sales.yemeksepeti.net) || 0;
+                income.storeCash += parseFloat(report.sales.storeCash.net) || 0;
+                income.storeCard += parseFloat(report.sales.storeCard.net) || 0;
             });
+            income.total = income.trendyol + income.yemeksepeti + income.storeCash + income.storeCard;
 
             expensesToProcess.forEach(expense => {
-                const amount = parseFloat(expense.amount);
+                const amount = parseFloat(expense.amount) || 0;
                 totalExpenses += amount;
-                if (expenseBreakdown[expense.category]) {
-                    expenseBreakdown[expense.category] += amount;
+                if (expensesByCategory[expense.category]) {
+                    expensesByCategory[expense.category] += amount;
                 } else {
-                    expenseBreakdown[expense.category] = amount;
+                    expensesByCategory[expense.category] = amount;
                 }
             });
+            
+            let inventoryValue = 0;
+            inventory.forEach(item => {
+                inventoryValue += (parseFloat(item.quantity) || 0) * (parseFloat(item.cost) || 0);
+            });
 
-            totalProfit = totalNetSales - totalExpenses;
+            const netProfit = income.total - totalExpenses;
 
             const lang = document.getElementById('language-selector').value;
             const t = translations[lang];
@@ -1423,31 +1433,34 @@
             document.getElementById('reports-monthly-report-title').textContent = reportTitle;
             const table = document.getElementById('reports-monthly-report-table');
             let tableHTML = `
-                <thead>
-                    <tr>
-                        <th>${t.dailySummary}</th>
-                        <th>${t.amount}</th>
-                    </tr>
-                </thead>
+                <thead><tr><th colspan="2">Income</th></tr></thead>
                 <tbody>
-                    <tr><td>${t.totalGrossSales}</td><td>${totalGross.toFixed(2)}</td></tr>
-                    <tr><td>${t.totalCommissionPaid}</td><td>${totalCommission.toFixed(2)}</td></tr>
-                    <tr><td>${t.totalNetSales}</td><td>${totalNetSales.toFixed(2)}</td></tr>
-                    <tr><td>${t.totalExpensesLabel}</td><td>${totalExpenses.toFixed(2)}</td></tr>
-                    <tr><td>${t.netProfit}</td><td>${totalProfit.toFixed(2)}</td></tr>
+                    <tr><td>Trendyol</td><td>${income.trendyol.toFixed(2)}</td></tr>
+                    <tr><td>Yemeksepeti</td><td>${income.yemeksepeti.toFixed(2)}</td></tr>
+                    <tr><td>In-Store (Cash)</td><td>${income.storeCash.toFixed(2)}</td></tr>
+                    <tr><td>In-Store (Credit Card)</td><td>${income.storeCard.toFixed(2)}</td></tr>
+                    <tr class="total-row"><td>Total Income</td><td>${income.total.toFixed(2)}</td></tr>
                 </tbody>
-                <thead>
-                    <tr>
-                        <th>Expense Category</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
+                <thead><tr><th colspan="2">Expenses</th></tr></thead>
                 <tbody>
             `;
-            for (const category in expenseBreakdown) {
-                tableHTML += `<tr><td>${category}</td><td>${expenseBreakdown[category].toFixed(2)}</td></tr>`;
+            for (const category in expensesByCategory) {
+                tableHTML += `<tr><td>${category}</td><td>${expensesByCategory[category].toFixed(2)}</td></tr>`;
             }
-            tableHTML += '</tbody>';
+            tableHTML += `
+                    <tr class="total-row"><td>Total Expenses</td><td>${totalExpenses.toFixed(2)}</td></tr>
+                </tbody>
+                <thead><tr><th colspan="2">Inventory</th></tr></thead>
+                <tbody>
+                    <tr><td>Inventory Value</td><td>${inventoryValue.toFixed(2)}</td></tr>
+                </tbody>
+                <thead><tr><th colspan="2">Summary</th></tr></thead>
+                <tbody>
+                    <tr><td>Total Income</td><td>${income.total.toFixed(2)}</td></tr>
+                    <tr><td>Total Expenses</td><td>${totalExpenses.toFixed(2)}</td></tr>
+                    <tr class="total-row"><td>Net Profit/Loss</td><td>${netProfit.toFixed(2)}</td></tr>
+                </tbody>
+            `;
             table.innerHTML = tableHTML;
 
             document.getElementById('reports-monthly-report-container').style.display = 'block';
