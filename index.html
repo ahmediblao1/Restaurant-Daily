@@ -1399,7 +1399,14 @@
                 storeCard: 0,
                 total: 0
             };
-            let expensesByCategory = {};
+            let expensesByCategory = {
+                rent: 0,
+                utilities: 0,
+                ingredients: 0,
+                salaries: 0,
+                advertising: 0,
+                other: 0
+            };
             let totalExpenses = 0;
 
             reportsToProcess.forEach(report => {
@@ -1443,11 +1450,12 @@
                 </tbody>
                 <thead><tr><th colspan="2">Expenses</th></tr></thead>
                 <tbody>
-            `;
-            for (const category in expensesByCategory) {
-                tableHTML += `<tr><td>${category}</td><td>${expensesByCategory[category].toFixed(2)}</td></tr>`;
-            }
-            tableHTML += `
+                    <tr><td>Rent</td><td>${(expensesByCategory.rent || 0).toFixed(2)}</td></tr>
+                    <tr><td>Utilities</td><td>${(expensesByCategory.utilities || 0).toFixed(2)}</td></tr>
+                    <tr><td>Ingredients</td><td>${(expensesByCategory.ingredients || 0).toFixed(2)}</td></tr>
+                    <tr><td>Salaries</td><td>${(expensesByCategory.salaries || 0).toFixed(2)}</td></tr>
+                    <tr><td>Advertising</td><td>${(expensesByCategory.advertising || 0).toFixed(2)}</td></tr>
+                    <tr><td>Other</td><td>${(expensesByCategory.other || 0).toFixed(2)}</td></tr>
                     <tr class="total-row"><td>Total Expenses</td><td>${totalExpenses.toFixed(2)}</td></tr>
                 </tbody>
                 <thead><tr><th colspan="2">Inventory</th></tr></thead>
