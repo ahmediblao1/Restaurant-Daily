@@ -472,6 +472,7 @@
         let expenses = [];
         let inventory = [];
         let recipes = [];
+        let currentProductSales = [];
 
         // Set today's date on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -816,6 +817,7 @@
                     complimentary: document.getElementById('complimentary').value || '0',
                     complimentaryNotes: document.getElementById('complimentary-notes').value || ''
                 },
+                productSales: currentProductSales,
                 expenses: Array.from(document.querySelectorAll('#expenses-tbody tr')).map(row => ({
                     category: row.querySelector('.expense-category').value,
                     amount: row.querySelector('.expense-amount').value,
@@ -1507,6 +1509,33 @@
             `;
             table.innerHTML = tableHTML;
 
+            // Add product sales to the report
+            let productSalesHTML = '<thead><tr><th colspan="3">Product Sales</th></tr></thead><tbody>';
+            productSalesHTML += '<tr><th>Product</th><th>Quantity Sold</th><th>Total Sales</th></tr>';
+
+            let aggregatedProductSales = {};
+            reportsToProcess.forEach(report => {
+                if (report.productSales) {
+                    report.productSales.forEach(item => {
+                        if (aggregatedProductSales[item.name]) {
+                            aggregatedProductSales[item.name].quantity += parseInt(item.quantity) || 0;
+                            aggregatedProductSales[item.name].total += parseFloat(item.total) || 0;
+                        } else {
+                            aggregatedProductSales[item.name] = {
+                                quantity: parseInt(item.quantity) || 0,
+                                total: parseFloat(item.total) || 0
+                            };
+                        }
+                    });
+                }
+            });
+
+            for (const productName in aggregatedProductSales) {
+                productSalesHTML += `<tr><td>${productName}</td><td>${aggregatedProductSales[productName].quantity}</td><td>${aggregatedProductSales[productName].total.toFixed(2)}</td></tr>`;
+            }
+            productSalesHTML += '</tbody>';
+            table.innerHTML += productSalesHTML;
+
             // Add profitability analysis to the report
             let profitabilityHTML = '<thead><tr><th colspan="4">Product Profitability</th></tr></thead><tbody>';
             profitabilityHTML += '<tr><th>Product</th><th>Sales</th><th>Cost</th><th>Profit</th></tr>';
@@ -2068,6 +2097,7 @@
         }
 
         function handleFileUpload(event, platform) {
+            currentProductSales = []; // Clear previous sales data
             const file = event.target.files[0];
             const reader = new FileReader();
 
@@ -2088,6 +2118,11 @@
                         totalTutar += parseFloat(row['Tutar']) || 0;
                         totalKomisyon += parseFloat(row['Komisyon']) || 0;
                         totalIndirim += parseFloat(row['İndirim']) || 0;
+                        currentProductSales.push({
+                            name: row['Ürün Adı'],
+                            quantity: 1, // Assuming each row is one sale
+                            total: parseFloat(row['Tutar']) || 0
+                        });
                     });
 
                     document.getElementById('trendyol-gross').value = totalTutar.toFixed(2);
@@ -2101,6 +2136,7 @@
                     let subtotalCol = -1;
                     let commissionCol = -1;
                     let discountCol = -1;
+                    let productCol = -1;
 
                     // Find header row and column indices
                     for (let i = 0; i < json.length; i++) {
@@ -2109,6 +2145,7 @@
                             subtotalCol = row.indexOf('Subtotal');
                             commissionCol = row.indexOf('Commission');
                             discountCol = row.indexOf('Discount Funded by Vendor');
+                            productCol = row.indexOf('Product');
                             break;
                         }
                     }
@@ -2124,6 +2161,11 @@
                                 totalSubtotal += parseFloat(row[subtotalCol]);
                                 totalCommission += parseFloat(row[commissionCol]) || 0;
                                 totalDiscount += parseFloat(row[discountCol]) || 0;
+                                currentProductSales.push({
+                                    name: row[productCol],
+                                    quantity: 1, // Assuming each row is one sale
+                                    total: parseFloat(row[subtotalCol]) || 0
+                                });
                             }
                         }
                         
@@ -2144,6 +2186,7 @@
 
                         let cashSales = 0;
                         let cardSales = 0;
+                        let productSalesStarted = false;
 
                         for (let i = 0; i < json.length; i++) {
                             const row = json[i];
@@ -2152,6 +2195,17 @@
                             }
                             if (row[0] && row[0].toString().includes('K. Kartı')) {
                                 cardSales = parseFloat(row[2].toString().replace('.', '').replace(',', '.')) || 0;
+                            }
+                            if (row[0] && row[0].toString().includes('Ürün - Grup Satış')) {
+                                productSalesStarted = true;
+                                continue; // Skip the header row
+                            }
+                            if (productSalesStarted && row[0] && !row[0].toString().startsWith('-')) {
+                                currentProductSales.push({
+                                    name: row[0],
+                                    quantity: parseInt(row[1]) || 0,
+                                    total: parseFloat(row[2]) || 0
+                                });
                             }
                         }
 
