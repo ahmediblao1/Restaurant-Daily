@@ -333,6 +333,7 @@
                         <th data-translate="expenseCategory">Expense Category</th>
                         <th data-translate="amount">Amount (TRY)</th>
                         <th data-translate="notes">Notes</th>
+                        <th>Payment Method</th>
                     </tr>
                 </thead>
                 <tbody id="expenses-tbody">
@@ -366,7 +367,7 @@
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="cashInStore">Cash in Store:</strong> <input type="number" class="input-field" id="cash-in-store"></p>
-                    <p><strong data-translate="cashWithAbdelhamid">فرق الكاصه:</strong> <input type="number" class="input-field" id="cash-with-abdelhamid"></p>
+                    <p><strong data-translate="cashWithAbdelhamid">Cash with Abdelhamid:</strong> <input type="number" class="input-field" id="cash-with-abdelhamid"></p>
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="complimentary">Complimentary:</strong> <span id="summary-complimentary">0.00</span> TRY</p>
@@ -553,7 +554,7 @@
                 addItem: "+ Add Item",
                 inventoryValue: "Inventory Value",
                 cashInStore: "Cash in Store",
-                cashWithAbdelhamid: "فرق الكاصه",
+                cashWithAbdelhamid: "Cash with Abdelhamid",
                 complimentary: "Complimentary",
                 productSales: "📈 Product Sales",
                 productName: "Product Name",
@@ -735,16 +736,24 @@
                 t.advertising
             ];
 
-            const options = categories.map(category => `<option value="${category}">${category}</option>`).join('');
+            const paymentMethods = ['Kasa', 'Vakif Bank', 'Anas', 'Kart'];
+
+            const categoryOptions = categories.map(category => `<option value="${category}">${category}</option>`).join('');
+            const paymentMethodOptions = paymentMethods.map(method => `<option value="${method}">${method}</option>`).join('');
 
             newRow.innerHTML = `
                 <td>
                     <select class="input-field expense-category">
-                        ${options}
+                        ${categoryOptions}
                     </select>
                 </td>
                 <td><input type="number" class="input-field expense-amount" oninput="calculateExpenses()"></td>
                 <td><input type="text" class="input-field expense-notes" placeholder="Notes"></td>
+                <td>
+                    <select class="input-field expense-payment-method">
+                        ${paymentMethodOptions}
+                    </select>
+                </td>
                 <td><button class="btn" onclick="removeExpenseRow(this)">-</button></td>
             `;
             tbody.appendChild(newRow);
@@ -821,7 +830,8 @@
                 expenses: Array.from(document.querySelectorAll('#expenses-tbody tr')).map(row => ({
                     category: row.querySelector('.expense-category').value,
                     amount: row.querySelector('.expense-amount').value,
-                    notes: row.querySelector('.expense-notes').value
+                    notes: row.querySelector('.expense-notes').value,
+                    paymentMethod: row.querySelector('.expense-payment-method').value
                 })),
                 summary: {
                     totalGross: document.getElementById('summary-gross').textContent,
@@ -1054,14 +1064,14 @@
             expensesTbody.innerHTML = ''; // Clear existing rows
             if (report.expenses && Array.isArray(report.expenses)) {
                 report.expenses.forEach(expense => {
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td><input type="text" class="input-field expense-category" value="${expense.category}"></td>
-                        <td><input type="number" class="input-field expense-amount" value="${expense.amount}" oninput="calculateExpenses()"></td>
-                        <td><input type="text" class="input-field expense-notes" value="${expense.notes}"></td>
-                        <td><button class="btn" onclick="removeExpenseRow(this)">-</button></td>
-                    `;
-                    expensesTbody.appendChild(newRow);
+                    addExpenseRow();
+                    const newRow = expensesTbody.lastChild;
+                    newRow.querySelector('.expense-category').value = expense.category;
+                    newRow.querySelector('.expense-amount').value = expense.amount;
+                    newRow.querySelector('.expense-notes').value = expense.notes;
+                    if (expense.paymentMethod) {
+                        newRow.querySelector('.expense-payment-method').value = expense.paymentMethod;
+                    }
                 });
             }
 
@@ -1181,6 +1191,7 @@
             calculateInventoryCost(year, month);
         }
 
+        let inventory = [];
 
         function addInventoryItem() {
             const tbody = document.getElementById('inventory-tbody');
@@ -1349,8 +1360,10 @@
         function exportReportFromTab() {
             const reportTitle = document.getElementById('reports-monthly-report-title').textContent;
             const table = document.getElementById('reports-monthly-report-table');
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Summary"});
-            const ws = wb.Sheets["Summary"];
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.table_to_sheet(table);
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
 
             // Add some basic styling
             const headerStyle = { font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "4F81BD" } } };
@@ -1359,9 +1372,11 @@
             // Find the rows to style
             for (const cell in ws) {
                 if (cell.startsWith('A')) {
-                    if (ws[cell].v === 'Income' || ws[cell].v === 'Expenses' || ws[cell].v === 'Inventory' || ws[cell].v === 'Summary') {
+                    if (ws[cell].v === 'Income' || ws[cell].v === 'Expenses' || ws[cell].v === 'Inventory' || ws[cell].v === 'Summary' || ws[cell].v === 'Product Sales' || ws[cell].v === 'Product Profitability') {
                         ws[cell].s = headerStyle;
                         ws['B' + cell.substring(1)].s = headerStyle;
+                        ws['C' + cell.substring(1)].s = headerStyle;
+                        ws['D' + cell.substring(1)].s = headerStyle;
                     }
                     if (ws[cell].v.includes('Total')) {
                         ws[cell].s = totalStyle;
@@ -1542,18 +1557,19 @@
 
             let productSales = {};
             reportsToProcess.forEach(report => {
-                const salesData = report.sales.inStore?.productSales || [];
-                salesData.forEach(item => {
-                    if (productSales[item.name]) {
-                        productSales[item.name].quantity += parseInt(item.quantity);
-                        productSales[item.name].total += parseFloat(item.total);
-                    } else {
-                        productSales[item.name] = {
-                            quantity: parseInt(item.quantity),
-                            total: parseFloat(item.total)
-                        };
-                    }
-                });
+                if (report.productSales) {
+                    report.productSales.forEach(item => {
+                        if (productSales[item.name]) {
+                            productSales[item.name].quantity += parseInt(item.quantity) || 0;
+                            productSales[item.name].total += parseFloat(item.total) || 0;
+                        } else {
+                            productSales[item.name] = {
+                                quantity: parseInt(item.quantity) || 0,
+                                total: parseFloat(item.total) || 0
+                            };
+                        }
+                    });
+                }
             });
 
             for (const productName in productSales) {
