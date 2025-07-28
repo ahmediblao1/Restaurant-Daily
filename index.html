@@ -367,7 +367,7 @@
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="cashInStore">Cash in Store:</strong> <input type="number" class="input-field" id="cash-in-store"></p>
-                    <p><strong data-translate="cashWithAbdelhamid">Cash with Abdelhamid:</strong> <input type="number" class="input-field" id="cash-with-abdelhamid"></p>
+                    <p><strong data-translate="cashWithAbdelhamid">Cash with ahmed:</strong> <input type="number" class="input-field" id="cash-with-abdelhamid"></p>
                 </div>
                 <div class="summary-item">
                     <p><strong data-translate="complimentary">Complimentary:</strong> <span id="summary-complimentary">0.00</span> TRY</p>
@@ -554,7 +554,7 @@
                 addItem: "+ Add Item",
                 inventoryValue: "Inventory Value",
                 cashInStore: "Cash in Store",
-                cashWithAbdelhamid: "Cash with Abdelhamid",
+                cashWithAbdelhamid: "Cash with ahmed",
                 complimentary: "Complimentary",
                 productSales: "📈 Product Sales",
                 productName: "Product Name",
@@ -880,13 +880,14 @@
                 [t.total, document.getElementById('total-gross').textContent, '', document.getElementById('total-commission').textContent, document.getElementById('total-discount').textContent, document.getElementById('total-net').textContent],
                 [], // Spacer
                 [t.dailyExpenses],
-                [t.expenseCategory, t.amount, t.notes]
+                [t.expenseCategory, t.amount, t.notes, "Payment Method"]
             ];
             document.querySelectorAll('#expenses-tbody tr').forEach(row => {
                 data.push([
                     row.querySelector('.expense-category').value,
                     row.querySelector('.expense-amount').value,
-                    row.querySelector('.expense-notes').value
+                    row.querySelector('.expense-notes').value,
+                    row.querySelector('.expense-payment-method').value
                 ]);
             });
             data.push([t.totalExpenses, document.getElementById('total-expenses').textContent, '']);
